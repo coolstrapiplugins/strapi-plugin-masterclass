@@ -1,0 +1,29 @@
+{
+  "name": "masterclass",
+  "version": "0.0.0",
+  "description": "This is the description of the plugin.",
+  "strapi": {
+    "name": "masterclass",
+    "description": "Description of masterclass plugin",
+    "kind": "plugin"
+  },
+  "dependencies": {
+    "@alicloud/pop-core": "^1.7.10",
+    "ali-oss": "^6.16.0",
+    "co": "^4.6.0",
+    "stripe": "^8.198.0"
+  },
+  "author": {
+    "name": "A Strapi developer"
+  },
+  "maintainers": [
+    {
+      "name": "A Strapi developer"
+    }
+  ],
+  "engines": {
+    "node": ">=12.x. <=16.x.x",
+    "npm": ">=6.0.0"
+  },
+  "license": "MIT"
+}

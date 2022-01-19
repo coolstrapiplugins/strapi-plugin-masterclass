@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "mc_student",
+  "info": {
+    "singularName": "mc-student",
+    "pluralName": "mc-students",
+    "displayName": "Student",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false,
+    "comment": ""
+  },
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "courses": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "plugin::masterclass.mc-student-course",
+      "mappedBy": "student"
+    }
+  }
+}

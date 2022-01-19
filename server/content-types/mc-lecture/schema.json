@@ -1,0 +1,31 @@
+{
+  "kind": "collectionType",
+  "collectionName": "mc_lecture",
+  "info": {
+    "singularName": "mc-lecture",
+    "pluralName": "mc-lectures",
+    "displayName": "Lecture",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false,
+    "comment": ""
+  },
+  "attributes": {
+    "course": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::masterclass.mc-course",
+      "inversedBy": "lectures"
+    },
+    "title": {
+      "type": "string"
+    },
+    "video": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::masterclass.mc-video",
+      "inversedBy": "lecture"
+    }
+  }
+}

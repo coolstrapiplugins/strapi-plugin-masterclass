@@ -1,0 +1,15 @@
+{
+  "kind": "collectionType",
+  "collectionName": "mc_student_course",
+  "info": {
+    "singularName": "mc-student-course",
+    "pluralName": "mc-students-courses",
+    "displayName": "Student-Course",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false,
+    "comment": ""
+  },
+  "attributes": {}
+}

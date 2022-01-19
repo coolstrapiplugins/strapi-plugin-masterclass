@@ -1,0 +1,14 @@
+{
+  "kind": "collectionType",
+  "collectionName": "mc_video",
+  "info": {
+    "singularName": "mc-video",
+    "pluralName": "mc-videos",
+    "displayName": "Video"
+  },
+  "options": {
+    "draftAndPublish": false,
+    "comment": ""
+  },
+  "attributes": {}
+}

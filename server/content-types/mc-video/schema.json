@@ -1,0 +1,34 @@
+{
+  "kind": "collectionType",
+  "collectionName": "mc_video",
+  "info": {
+    "singularName": "mc-video",
+    "pluralName": "mc-videos",
+    "displayName": "Video",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false,
+    "comment": ""
+  },
+  "attributes": {
+    "lecture": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::masterclass.mc-lecture",
+      "inversedBy": "video"
+    },
+    "video_id": {
+      "type": "string"
+    },
+    "duration": {
+      "type": "integer"
+    },
+    "filename": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    }
+  }
+}

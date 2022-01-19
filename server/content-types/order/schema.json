@@ -1,0 +1,14 @@
+{
+  "kind": "collectionType",
+  "collectionName": "mc_order",
+  "info": {
+    "singularName": "mc-order",
+    "pluralName": "mc-orders",
+    "displayName": "Order"
+  },
+  "options": {
+    "draftAndPublish": false,
+    "comment": ""
+  },
+  "attributes": {}
+}
