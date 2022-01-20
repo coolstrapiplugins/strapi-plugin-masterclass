@@ -90,6 +90,14 @@ module.exports = {
       config: {
         policies: [],
       }
+    },
+    {
+      method: 'GET',
+      path: '/courses/my-learning',
+      handler: 'courses.getCoursesPurchased',
+      config: {
+        policies: [],
+      }
     }
   ]
 }

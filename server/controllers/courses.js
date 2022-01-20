@@ -348,5 +348,22 @@ module.exports = {
     return {
       ok: true
     }
+  },
+  async getCoursesPurchased(ctx) {
+    const { user } = ctx.state
+    if (!user) {
+      return ctx.badRequest("There must be an user")
+    }
+    const courses = await strapi.entityService.findMany("plugin::masterclass:mc-student-course", {
+      filters: {
+        user: user.id
+      },
+      populate: {
+        course: {
+          fields: ["id"]
+        }
+      }
+    })
+    ctx.body = { courses }
   }
 }
