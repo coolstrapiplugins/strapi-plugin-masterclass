@@ -54,7 +54,7 @@ module.exports = {
     {
       method: 'POST',
       path: '/courses/:id/check-lecture',
-      handler: 'courses.check',
+      handler: 'courses.checkLecture',
       config: {
         policies: [],
       }

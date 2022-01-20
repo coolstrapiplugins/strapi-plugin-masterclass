@@ -261,7 +261,7 @@ module.exports = {
       currentLecture: lecture
     }
   },
-  async check(ctx) {
+  async checkLecture(ctx) {
     const { user } = ctx.state
     const { id } = ctx.params
     const { lecture } = ctx.query
