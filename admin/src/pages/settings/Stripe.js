@@ -5,6 +5,7 @@
  */
 
 import React, { memo, useState, useEffect } from 'react';
+import styled from "styled-components"
 // import PropTypes from 'prop-types';
 import { Box } from "@strapi/design-system/Box"
 import { Typography } from '@strapi/design-system/Typography';
@@ -77,6 +78,9 @@ const SettingsPage = () => {
       setSending(false)
     }
   }
+  const PkTypography = styled(Typography)`
+    word-break: break-all;
+  `
   return (
     <Box background="neutral100" padding={8}>
       <Box paddingBottom={3} paddingTop={3}>
@@ -88,24 +92,31 @@ const SettingsPage = () => {
             Set Stripe private key
           </Typography>
           <Typography variant="epsilon">
-            Current private key: {
-              pk.initial === undefined ? "loading..." : pk.initial || "unset"
-            }
+            Current private key: {" "}
+            <PkTypography fontWeight="bold">
+              {
+                pk.initial === undefined ? "loading..." : pk.initial || "unset"
+              }
+            </PkTypography>
           </Typography>
         </Stack>
         <Box paddingTop={2} paddingBottom={2}>
           <form onSubmit={handleSubmit}>
-            <TextInput
-              label="Private key"
-              name="pk"
-              onChange={value => setPk({...pk, current: value})}
-              value={pk.current}
-              required={true}
-            />
-            <Button
-              type="submit"
-              loading={sending ? true : undefined}
-            >Submit</Button>
+            <Stack size={2}>
+              <TextInput
+                label="Private key"
+                name="pk"
+                onChange={e => setPk({...pk, current: e.target.value})}
+                value={pk.current || ""}
+                required={true}
+              />
+              <Box>
+                <Button
+                  type="submit"
+                  loading={sending ? true : undefined}
+                >Submit</Button>
+              </Box>
+            </Stack>
           </form>
         </Box>
         {
