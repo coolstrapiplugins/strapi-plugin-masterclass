@@ -52,9 +52,7 @@ export default {
             return component;
           },
           permissions: []
-        }
-      ],
-      [
+        },
         {
           intlLabel: {
             id: getTrad('Settings.stripe'),
