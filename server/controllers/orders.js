@@ -12,7 +12,7 @@ module.exports = {
     if (!user) {
       return ctx.badRequest("User must be authenticated")
     }
-    const orders = await strapi.entityService.findMany("plugin::masterclass:mc-order", {
+    const orders = await strapi.entityService.findMany("plugin::masterclass.mc-order", {
       filters: {
         user: user.id
       },
@@ -36,7 +36,7 @@ module.exports = {
       return ctx.badRequest("User must be authenticated")
     }
     const order = await strapi.entityService.findOne(
-      "plugin::masterclass:mc-order",
+      "plugin::masterclass.mc-order",
       id,
       {
         populate: {
@@ -73,7 +73,7 @@ module.exports = {
     // Get courses details
     for (let i = 0; i < courses.length; i++) {
       const id = courses[i]
-      const course = await strapi.entityService.findOne("plugin::masterclass:course", id, {
+      const course = await strapi.entityService.findOne("plugin::masterclass.mc-course", id, {
         fields: ["title", "price"]
       })
       if (!course) {
@@ -85,7 +85,7 @@ module.exports = {
       })
     }
 
-    const stripe = await strapi.service("plugin::masterclass:stripe").getStripeClient()
+    const stripe = await strapi.service("plugin::masterclass.stripe").getStripeClient()
     if (!stripe) {
       return ctx.badRequest("Stripe Private key is unset")
     }
@@ -112,7 +112,7 @@ module.exports = {
     })
 
     // Create order
-    await strapi.entityService.create("plugin::masterclass:order", {
+    await strapi.entityService.create("plugin::masterclass.mc-order", {
       data: {
         total,
         user: user.id,
@@ -132,7 +132,7 @@ module.exports = {
     const { checkout_session } = ctx.request.body
     let session
     
-    const stripe = await strapi.service("plugin::masterclass:stripe").getStripeClient()
+    const stripe = await strapi.service("plugin::masterclass.stripe").getStripeClient()
     if (!stripe) {
       return ctx.badRequest("Stripe Private key is unset")
     }
@@ -142,20 +142,17 @@ module.exports = {
       return ctx.notFound("Checkout ID " + checkout_session + " not found")
     }
 
-    const order = await strapi.entityService.findOne(
-      "plugin::masterclass:order",
-      checkout_session,
-      {
-        populate: {
-          user: {
-            fields: ["id"]
-          },
-          courses: {
-            fields: ["id"]
-          }
+    const order = await strapi.db.query("plugin::masterclass.mc-order").findOne({
+      where: { checkout_session },
+      populate: {
+        user: {
+          fields: ["id"]
+        },
+        courses: {
+          fields: ["id"]
         }
       }
-    )
+    })
 
     if (!order) {
       return ctx.notFound("Order not found")
@@ -168,7 +165,7 @@ module.exports = {
       // Sign in user to the courses if the order was not confirmed.
       if (!order.confirmed) {
         await strapi.service('plugin::masterclass.courses')
-          .signIntoMultipleCourses(user, courses)
+          .signIntoMultipleCourses(user, order.courses)
 
         // Mark order as confirmed
         order.confirmed = true

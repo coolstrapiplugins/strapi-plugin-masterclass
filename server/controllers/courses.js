@@ -2,10 +2,12 @@
 
 module.exports = {
   async find(ctx) {
-    const courses = await strapi.entityService.findMany("plugin::masterclass:mc-course", {
+    const courses = await strapi.entityService.findMany("plugin::masterclass.mc-course", {
       filters: {},
       populate: {
-        thumbnail: true,
+        thumbnail: {
+          fields: ["name", "url"]
+        },
         lectures: {
           fields: ["title"]
         }
@@ -15,7 +17,7 @@ module.exports = {
   },
   async findOne(ctx) {
     const { slug } = ctx.params
-    const course = await strapi.db.query("plugin::masterclass:mc-course").findOne({
+    const course = await strapi.db.query("plugin::masterclass.mc-course").findOne({
       where: { slug },
       select: [
         "id",
@@ -354,9 +356,9 @@ module.exports = {
     if (!user) {
       return ctx.badRequest("There must be an user")
     }
-    const courses = await strapi.entityService.findMany("plugin::masterclass:mc-student-course", {
+    const courses = await strapi.entityService.findMany("plugin::masterclass.mc-student-course", {
       filters: {
-        user: user.id
+        student: user.id
       },
       populate: {
         course: {

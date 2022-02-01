@@ -2,7 +2,7 @@
 
 module.exports = {
   async getStripePk(ctx) {
-    const pk = await strapi.service("plugin::masterclass:stripe").getStripePk()
+    const pk = await strapi.service("plugin::masterclass.stripe").getStripePk()
     ctx.body = { pk }
   },
   async setStripePk(ctx) {
