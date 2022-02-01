@@ -28,7 +28,9 @@ module.exports = {
         "slug"
       ],
       populate: {
-        thumbnail: true,
+        thumbnail: {
+          fields: ["name", "url"]
+        },
         lectures: {
           fields: ["title"]
         }
@@ -351,7 +353,8 @@ module.exports = {
       ok: true
     }
   },
-  async getCoursesPurchased(ctx) {
+  // this handler only returns the IDs of all the courses purchased by the user
+  async getItemsPurchased(ctx) {
     const { user } = ctx.state
     if (!user) {
       return ctx.badRequest("There must be an user")
@@ -363,6 +366,39 @@ module.exports = {
       populate: {
         course: {
           fields: ["id"]
+        }
+      }
+    })
+    ctx.body = { courses }
+  },
+  // this handler returns the full information of all the courses purchased by the user
+  async getMyLearning(ctx) {
+    const { user } = ctx.state
+    if (!user) {
+      return ctx.badRequest("There must be an user")
+    }
+    const courses = await strapi.entityService.findMany("plugin::masterclass.mc-student-course", {
+      filters: {
+        student: user.id
+      },
+      populate: {
+        course: {
+          fields: [
+            "id",
+            "duration",
+            "title",
+            "description",
+            "price",
+            "slug"
+          ],
+          populate: {
+            thumbnail: {
+              fields: ["name", "url"]
+            },
+            lectures: {
+              fields: ["title"]
+            }
+          }
         }
       }
     })

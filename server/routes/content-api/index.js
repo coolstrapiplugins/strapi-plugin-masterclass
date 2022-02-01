@@ -93,8 +93,16 @@ module.exports = {
     },
     {
       method: 'GET',
+      path: '/my-items-purchased',
+      handler: 'courses.getItemsPurchased',
+      config: {
+        policies: [],
+      }
+    },
+    {
+      method: 'GET',
       path: '/my-learning',
-      handler: 'courses.getCoursesPurchased',
+      handler: 'courses.getMyLearning',
       config: {
         policies: [],
       }
