@@ -23,11 +23,11 @@ module.exports = {
     return await pluginStore.get({ key: "stripe_pk"})
   },
   setStripePk: async function(newPk) {
-    const config = await this.getConfig()
+    const pluginStore = this.getStore()
     pluginStore.set({ key: "stripe_pk", value: newPk})
     this.setStripeClient(newPk)
   },
-  getVODClient: async function() {
+  getStripeClient: async function() {
     if (!this.stripe_client) {
       const pk = await this.getStripePk()
       this.setStripeClient(pk)
