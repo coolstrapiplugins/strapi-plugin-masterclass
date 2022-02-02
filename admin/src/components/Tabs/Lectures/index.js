@@ -30,8 +30,12 @@ const Courses = () => {
 
   const addLecture = (newLecture) => {
     const lectures = data ? [...data.lectures] : []
-    setData({lectures: lectures.unshift(newLecture)})
+    setData({lectures: [newLecture, ...lectures]})
     setOpenCreateModal(false)
+  }
+  const handleLoadLectures = () => {
+    const url = "/masterclass/get-video-list"
+    axios.post(url)
   }
 
   useEffect(() => {
@@ -55,6 +59,9 @@ const Courses = () => {
         <Stack size={4}>
           <Box>
             <Button onClick={() => setOpenCreateModal(true)}>New Lecture</Button>
+          </Box>
+          <Box>
+            <Button onClick={handleLoadLectures}>Load lectures from cloud</Button>
           </Box>
           {
             !data ?

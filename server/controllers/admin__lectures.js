@@ -8,7 +8,6 @@ module.exports = {
     .findMany("plugin::masterclass.mc-lecture",
       {
         filters: {},
-        sort: { updatedAt: "DESC" },
         populate: {
           course: {
             fields: ["id", "title"]

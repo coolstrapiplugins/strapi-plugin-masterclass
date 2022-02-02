@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react"
 import styled from "styled-components"
 import { Table, Thead, Tbody, Tr, Td, Th } from '@strapi/design-system/Table';
+import { Checkbox } from "@strapi/design-system/Checkbox"
 import {
   ModalLayout,
   ModalHeader,
@@ -70,6 +71,12 @@ const CoursesContainer = ({data}) => {
 
 export default CoursesContainer
 
+const TableRow = styled(Tr)`
+  &:hover {
+    cursor: pointer;
+    background: #d3d3d3;
+  }
+`
 const CourseRow = ({ data }) => {
   const [modalOpen, setModalOpen] = useState(false)
   let titleSummary = data.title
@@ -77,12 +84,6 @@ const CourseRow = ({ data }) => {
     titleSummary = data.title.slice(0, 50)
     titleSummary += "..."
   }
-  const TableRow = styled(Tr)`
-    &:hover {
-      cursor: pointer;
-      background: #d3d3d3;
-    }
-  `
   const closeModal = e => {
     if (e && e.stopPropagation) {
       e.stopPropagation()
@@ -109,6 +110,7 @@ const CourseRow = ({ data }) => {
 }
 
 const CourseModal = ({data, close}) => {
+  const [lecturesModalOpen, setLecturesModalOpen] = useState(false)
   return (
     <ModalLayout labelledBy="title" onClose={close}>
       <ModalHeader>
@@ -118,13 +120,190 @@ const CourseModal = ({data, close}) => {
       </ModalHeader>
       <ModalBody>
         <Stack size={2}>
+          <Box>
+            <Button onClick={() => setLecturesModalOpen(true)}>Add lectures</Button>
+          </Box>
           <Typography variant="beta">
             {data.lectures.length} lectures
           </Typography>
+          {
+            (data.lectures.length > 0) &&
+            <Table colCount={COL_COUNT} rowCount={ROW_COUNT}>
+              <Thead>
+                <Tr>
+                  <Th>
+                    <Typography fontWeight="bold">ID</Typography>
+                  </Th>
+                  <Th>
+                    <Typography fontWeight="bold">Title</Typography>
+                  </Th>
+                  <Th>
+                    <Typography fontWeight="bold">Duration (s)</Typography>
+                  </Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {
+                  data.lectures.map(l => {
+                    let titleSummary = l.title
+                    if (l.title && l.title.length > 50) {
+                      titleSummary = l.title.slice(0, 50)
+                      titleSummary += "..."
+                    }
+                    return (
+                      <Tr key={l.id + l.title}>
+                        <Td>{l.id}</Td>
+                        <Td>{titleSummary}</Td>
+                        <Td>{l.video.duration}</Td>
+                      </Tr>
+                    )
+                  })
+                }
+              </Tbody>
+            </Table>
+          }
           <Typography variant="beta">
             {data.students.length} students
           </Typography>
         </Stack>
+        {
+          lecturesModalOpen && (
+            <AddLecturesModal
+              close={() => setLecturesModalOpen(false)}
+              courseLectures={data.lectures}
+              courseID={data.id}
+            />
+          )
+        }
+      </ModalBody>
+      <ModalFooter
+        startActions={<></>}
+        endActions={<Button onClick={close}>Finish</Button>}
+      />
+    </ModalLayout>
+  )
+}
+
+const AddLecturesModal = ({courseID, courseLectures, close}) => {
+  const [lecturesChecked, setLecturesChecked] = useState([])
+  const [lectures, setLectures] = useState(null)
+  const [sending, setSending] = useState(false)
+  useEffect(() => {
+    const fetchLectures = async () => {
+      const url = "/masterclass/lectures"
+      try {
+        const { data } = await axios.get(url)
+        const filteredLectures = data.lectures.filter(l => {
+          return !courseLectures.some(({id}) => id === l.id)
+        })
+        setLectures(filteredLectures)
+      } catch(err) {
+        console.log(err)
+        setLectures([])
+      }
+    }
+    fetchLectures()
+  }, [])
+  const handleSubmit = async (e) => {
+    setSending(true)
+    e.preventDefault()
+    const url = `/masterclass/course/${courseID}/link-lectures`
+    try {
+        await axios.put(url, {lectures: lecturesChecked})
+        close()
+      } catch(err) {
+        console.log(err)
+        setSending(false)
+      }
+  }
+  const toggleCheckAll = () => {
+    const checkedAll = lectures ? (lectures.length === lecturesChecked.length) : false
+    if (checkedAll) {
+      setLecturesChecked([])
+    } else {
+      setLecturesChecked(lectures.map(l => l.id))
+    }
+  }
+  return (
+    <ModalLayout labelledBy="title" onClose={close}>
+      <ModalHeader>
+        <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
+          Add lecture to course {courseID}
+        </Typography>
+      </ModalHeader>
+      <ModalBody>
+        {
+          lectures ?
+            lectures.length ?
+              <form onSubmit={handleSubmit}>
+                <Table colCount={COL_COUNT} rowCount={ROW_COUNT}>
+                  <Thead>
+                    <Tr>
+                      <Th>
+                        <Checkbox
+                          checked={lectures ? (lectures.length === lecturesChecked.length):false}
+                          onChange={toggleCheckAll}
+                        >ID</Checkbox>
+                      </Th>
+                      <Th>
+                        <Typography fontWeight="bold">Title</Typography>
+                      </Th>
+                      <Th>
+                        <Typography fontWeight="bold">Duration (s)</Typography>
+                      </Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {
+                      lectures.map(l => {                      
+                        let titleSummary = l.title
+                        if (l.title && l.title.length > 50) {
+                          titleSummary = l.title.slice(0, 50)
+                          titleSummary += "..."
+                        }
+                        const handleChange = (e) => {
+                          if (lecturesChecked.includes(l.id)) {
+                            // remove
+                            setLecturesChecked(lecturesChecked.filter(id => id !== l.id))
+                          } else {
+                            // add
+                            setLecturesChecked(lecturesChecked.concat(l.id))
+                          }
+                        }
+                        return (
+                          <Tr key={l.id + l.title}>
+                            <Td>
+                              <Checkbox
+                                checked={lecturesChecked.includes(l.id)}
+                                onChange={handleChange}
+                              >
+                                {l.id.toString()}
+                              </Checkbox>
+                            </Td>
+                            <Td>{titleSummary}</Td>
+                            <Td>{l.video.duration}</Td>
+                          </Tr>
+                        )
+                      })
+                    }
+                  </Tbody>
+                </Table>
+                <Button
+                  type="submit"
+                  loading={sending ? true : undefined}
+                >Submit</Button>
+              </form>
+            : (
+              <Typography fontWeight="bold">
+                There are no lectures to add to this course
+              </Typography>
+            )
+          : (
+            <Typography fontWeight="bold">
+              Loading lectures. Please wait...
+            </Typography>
+          )
+        }
       </ModalBody>
       <ModalFooter
         startActions={<></>}

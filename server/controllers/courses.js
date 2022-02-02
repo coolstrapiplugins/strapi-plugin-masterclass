@@ -9,7 +9,12 @@ module.exports = {
           fields: ["name", "url"]
         },
         lectures: {
-          fields: ["title"]
+          fields: ["title"],
+          populate: {
+            video: {
+              fields: ["duration"]
+            }
+          }
         }
       }
     })
@@ -32,11 +37,23 @@ module.exports = {
           fields: ["name", "url"]
         },
         lectures: {
-          fields: ["title"]
+          fields: ["title"],
+          populate: {
+            video: {
+              fields: ["duration"]
+            }
+          }
         }
       }
     })
     return course
+  },
+  async findSlugs(ctx) {
+    const courses = await strapi.entityService.findMany("plugin::masterclass.mc-course", {
+      filters: {},
+      fields: ["slug"]
+    })
+    return { courses }
   },
   /*
   * Get the classes the user (if any) has marked as seen and the number of students
@@ -396,7 +413,12 @@ module.exports = {
               fields: ["name", "url"]
             },
             lectures: {
-              fields: ["title"]
+              fields: ["title"],
+              populate: {
+                video: {
+                  fields: ["duration"]
+                }
+              }
             }
           }
         }

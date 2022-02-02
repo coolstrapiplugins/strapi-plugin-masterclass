@@ -21,6 +21,14 @@ module.exports = {
     },
     {
       method: 'GET',
+      path: '/courses-slugs',
+      handler: 'courses.findSlugs',
+      config: {
+        policies: [],
+      }
+    },
+    {
+      method: 'GET',
       path: '/course-details/:id',
       handler: 'courses.getCourseDetails',
       config: {
@@ -52,7 +60,7 @@ module.exports = {
       }
     },
     {
-      method: 'POST',
+      method: 'PUT',
       path: '/courses/:id/check-lecture',
       handler: 'courses.checkLecture',
       config: {

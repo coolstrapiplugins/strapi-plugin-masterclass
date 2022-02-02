@@ -20,6 +20,22 @@ module.exports = {
       }
     },
     {
+      method: 'PUT',
+      path: '/course/:id/link-lectures',
+      handler: 'admin__courses.linkLectures',
+      config: {
+        policies: [],
+      }
+    },
+    {
+      method: 'POST',
+      path: '/get-video-list',
+      handler: 'admin__upload.getVideoList',
+      config: {
+        policies: [],
+      }
+    },
+    {
       method: 'POST',
       path: '/lectures',
       handler: 'admin__lectures.create',

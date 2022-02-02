@@ -70,6 +70,12 @@ const LecturesContainer = ({data}) => {
 
 export default LecturesContainer
 
+const TableRow = styled(Tr)`
+  &:hover {
+    cursor: pointer;
+    background: #d3d3d3;
+  }
+`
 const LectureRow = ({ data }) => {
   const [modalOpen, setModalOpen] = useState(false)
   let titleSummary = data.title
@@ -85,12 +91,6 @@ const LectureRow = ({ data }) => {
       courseTitleSummary += "..."
     }
   }
-  const TableRow = styled(Tr)`
-    &:hover {
-      cursor: pointer;
-      background: #d3d3d3;
-    }
-  `
   const closeModal = e => {
     if (e && e.stopPropagation) {
       e.stopPropagation()
