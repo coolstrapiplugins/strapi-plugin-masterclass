@@ -53,7 +53,7 @@ module.exports = {
     },
     {
       method: 'GET',
-      path: '/courses/:id/playLecture',
+      path: '/courses/:id/play-lecture',
       handler: 'courses.getPlayAuth',
       config: {
         policies: [],
