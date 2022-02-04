@@ -144,10 +144,12 @@ module.exports = {
         },
         populate: {
           course: {
-            lectures: {
-              populate: {
-                video: {
-                  fields: ["id", "video_id"]
+            populate: {
+              lectures: {
+                populate: {
+                  video: {
+                    fields: ["id", "video_id"]
+                  }
                 }
               }
             }
@@ -193,9 +195,9 @@ module.exports = {
     }
     return {
       PlayAuth: result.PlayAuth,
-      VideoId: current_lecture.video_id,
+      VideoId: currentLecture.video.video_id,
       classesCompleted: student.lectures_seen,
-      currentLecture: currentLecture.id
+      currentLectureID: currentLecture.id
     }
   },
   /*
