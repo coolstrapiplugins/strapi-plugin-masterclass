@@ -4,23 +4,21 @@
  *  service.
  */
 
-const Core = require('@alicloud/pop-core');
+const Mux = require('@mux/mux-node')
 const pluginId = require("../pluginId")
+
+const { Video } = new Mux(process.env.MUX_TOKEN_ID, process.env.MUX_TOKEN_SECRET);
 
 module.exports = {
   DEFAULT_CONFIG: {
-    OSS_access_key_id: "",
-    OSS_access_key_secret: "",
-    VOD_region: "",
-    VOD_template_group_id: ""
+    mux_access_key_id: "",
+    mux_access_key_secret: ""
   },
-  VOD_client: null,
+  mux_client: null,
   isValidConfig: function(config) {
     return (
-      config.OSS_access_key_id     !== "" &&
-      config.OSS_access_key_secret !== "" &&
-      config.VOD_region            !== "" &&
-      config.VOD_template_group_id !== ""
+      config.mux_access_key_id     !== "" &&
+      config.mux_access_key_secret !== ""
     )
   },
   /**
@@ -50,24 +48,18 @@ module.exports = {
     const newConfig = {...config, ...newConfigInput}
     const pluginStore = this.getStore()
     pluginStore.set({ key: "config", value: newConfig})
-    this.setVODClient(config)
+    this.setMuxClient(config)
   },
-  getVODClient: async function() {
-    if (!this.VOD_client) {
+  getMuxClient: async function() {
+    if (!this.mux_client) {
       const config = await this.getConfig()
-      this.setVODClient(config)
+      this.setMuxClient(config)
     }
-    return this.VOD_client
+    return this.mux_client
   },
-  setVODClient: function(config) {
+  setMuxClient: function(config) {
     if (this.isValidConfig(config)) {
-      this.VOD_client = new Core({
-        accessKeyId: config.OSS_access_key_id,
-        accessKeySecret: config.OSS_access_key_secret,
-        endpoint: `https://vod.${config.VOD_region}.aliyuncs.com`,
-        apiVersion: '2017-03-21',
-        timeout: 60 * 1000
-      });
+      this.mux_client = new Mux(config.mux_access_key_id, config.mux_access_key_secret)
     }
   }
 }

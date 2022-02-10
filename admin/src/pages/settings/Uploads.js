@@ -19,10 +19,8 @@ const SettingsPage = () => {
   const [config, setConfig] = useState({
     initial: null,
     current: {
-      OSS_access_key_id: null,
-      OSS_access_key_secret: null,
-      VOD_region: null,
-      VOD_template_group_id: null
+      mux_access_key_id: null,
+      mux_access_key_secret: null
     }
   })
   const [sending, setSending] = useState(false)
@@ -66,29 +64,19 @@ const SettingsPage = () => {
       return true
     }
 
-    let OSS_access_key_id = config.current.OSS_access_key_id !== null
-    let OSS_access_key_secret = config.current.OSS_access_key_secret !== null
-    let VOD_region = config.current.VOD_region !== null
-    let VOD_template_group_id = config.current.VOD_template_group_id !== null
+    let mux_access_key_id = config.current.mux_access_key_id !== null
+    let mux_access_key_secret = config.current.mux_access_key_secret !== null
 
-    if (OSS_access_key_id) {
-      OSS_access_key_id =
-        config.current.OSS_access_key_id !== config.initial.OSS_access_key_id
+    if (mux_access_key_id) {
+      mux_access_key_id =
+        config.current.mux_access_key_id !== config.initial.mux_access_key_id
     }
-    if (OSS_access_key_secret) {
-      OSS_access_key_secret =
-        config.current.OSS_access_key_secret !== config.initial.OSS_access_key_secret
-    }
-    if (VOD_region) {
-      VOD_region =
-        config.current.VOD_region !== config.initial.VOD_region
-    }
-    if (VOD_template_group_id) {
-      VOD_template_group_id =
-        config.current.VOD_template_group_id !== config.initial.VOD_template_group_id
+    if (mux_access_key_secret) {
+      mux_access_key_secret =
+        config.current.mux_access_key_secret !== config.initial.mux_access_key_secret
     }
     return (
-      OSS_access_key_id || OSS_access_key_secret || VOD_region || VOD_template_group_id
+      mux_access_key_id || mux_access_key_secret
     )
   }
   const handleSubmit = async (e) => {
@@ -96,10 +84,8 @@ const SettingsPage = () => {
     console.log("submitting", {config})
     if (
       !( // at least one of the fields should not be null
-        config.current.OSS_access_key_id !== null ||
-        config.current.OSS_access_key_secret !== null ||
-        config.current.VOD_region !== null ||
-        config.current.VOD_template_group_id !== null
+        config.current.mux_access_key_id !== null ||
+        config.current.mux_access_key_secret !== null
       )
     ) {
       return
@@ -149,45 +135,27 @@ const SettingsPage = () => {
       <Box background="neutral0" padding={6}>
         <Stack size={4}>
           <Typography variant="beta">
-            These parameters are required for uploading videos to Alibaba Cloud Apsara VOD.
+            These parameters are required for uploading videos to <a href="https://mux.com">Mux</a>.
           </Typography>
           <Stack size={0}>
             <Typography variant="epsilon">
               Current configuration:
             </Typography>
             <Typography>
-              OSS Access key ID: {" "}
+              Mux Access key ID: {" "}
               <Typography fontWeight="bold">
                 {
                   !config.initial ? "loading..." :
-                  config.initial.OSS_access_key_id || "unset"
+                  config.initial.mux_access_key_id || "unset"
                 }
               </Typography>
             </Typography>
             <Typography>
-              OSS Access key Secret: {" "}
+              Mux Access key Secret: {" "}
               <Typography fontWeight="bold">
                 {
                   !config.initial ? "loading..." :
-                  config.initial.OSS_access_key_secret || "unset"
-                }
-              </Typography>
-            </Typography>
-            <Typography>
-              VOD region:  {" "}
-              <Typography fontWeight="bold">
-                {
-                  !config.initial ? "loading..." :
-                  config.initial.VOD_region || "unset"
-                }
-              </Typography>
-            </Typography>
-            <Typography>
-              VOD template group ID:  {" "}
-              <Typography fontWeight="bold">
-                {
-                  !config.initial ? "loading..." :
-                  config.initial.VOD_template_group_id || "unset"
+                  config.initial.mux_access_key_secret || "unset"
                 }
               </Typography>
             </Typography>
@@ -197,46 +165,24 @@ const SettingsPage = () => {
           <form onSubmit={handleSubmit}>
             <Stack size={2}>
               <TextInput
-                label="OSS Access key ID"
-                name="OSS_access_key_id"
-                onChange={e => handleChange("OSS_access_key_id", e.target.value)}
+                label="Mux Access key ID"
+                name="mux_access_key_id"
+                onChange={e => handleChange("mux_access_key_id", e.target.value)}
                 value={
-                  config.current.OSS_access_key_id !== null ?
-                    config.current.OSS_access_key_id
-                  : config.initial ? config.initial.OSS_access_key_id : ""
+                  config.current.mux_access_key_id !== null ?
+                    config.current.mux_access_key_id
+                  : config.initial ? config.initial.mux_access_key_id : ""
                 }
                 required={true}
               />
               <TextInput
-                label="OSS Access key ((((secret))))"
-                name="OSS_access_key_secret"
-                onChange={e => handleChange("OSS_access_key_secret", e.target.value)}
+                label="Mux Access key ((((secret))))"
+                name="mux_access_key_secret"
+                onChange={e => handleChange("mux_access_key_secret", e.target.value)}
                 value={
-                  config.current.OSS_access_key_secret !== null ?
-                    config.current.OSS_access_key_secret
-                  : config.initial ? config.initial.OSS_access_key_secret : ""
-                }
-                required={true}
-              />
-              <TextInput
-                label="VOD region"
-                name="VOD_region"
-                onChange={e => handleChange("VOD_region", e.target.value)}
-                value={
-                  config.current.VOD_region !== null ?
-                    config.current.VOD_region
-                  : config.initial ? config.initial.VOD_region : ""
-                }
-                required={true}
-              />
-              <TextInput
-                label="VOD template group ID"
-                name="VOD_template_group_id"
-                onChange={e => handleChange("VOD_template_group_id", e.target.value)}
-                value={
-                  config.current.VOD_template_group_id !== null ?
-                    config.current.VOD_template_group_id
-                  : config.initial ? config.initial.VOD_template_group_id : ""
+                  config.current.mux_access_key_secret !== null ?
+                    config.current.mux_access_key_secret
+                  : config.initial ? config.initial.mux_access_key_secret : ""
                 }
                 required={true}
               />

@@ -1,6 +1,7 @@
 'use strict';
-const OSS = require('ali-oss');
-const { readFileSync } = require('fs')
+
+const fs = require('fs');
+const request = require('request');
 
 module.exports = {
   async find(ctx) {
@@ -29,76 +30,40 @@ module.exports = {
     if (!data || !data.title) {
       return ctx.badRequest("Title must be specified")
     }
-    // Get VOD client and config
-    const vodClient = await strapi.service('plugin::masterclass.upload').getVODClient()
+
+    // Get mux client
+    const muxClient = await strapi.service('plugin::masterclass.upload').getMuxClient()
     const config = await strapi.service('plugin::masterclass.upload').getConfig()
-    if (!vodClient) {
+    if (!muxClient) {
       return ctx.badRequest("Config is not valid: " + JSON.stringify(config))
     }
+
+
     const { video } = files
     const { title } = data
     const filename = video.name
-    const params = {
-      "RegionId": config.VOD_region,
-      "Title": title,
-      "FileName": filename,
-      "TemplateGroupId": config.VOD_template_group_id,
-      timeout: 60 * 1000,
-    }
-    const requestOption = {
-      method: 'POST'
-    }
-    let createReqResult
+
+
+    let upload
     try {
-      // Create request to upload video to Apsara VOD
-      createReqResult = await vodClient.request('CreateUploadVideo', params, requestOption)
+      const { Video } = muxClient
+      // upload.url is where the video will be put.
+      upload = await Video.Uploads.create({
+        new_asset_settings: {
+          playback_policy: 'public'
+        }
+      })
     } catch(err) {
       console.log(err)
-      return ctx.internalServerError("Error on CreateUploadVideo")
+      return ctx.internalServerError("Error on Video.Uploads.create")
     }
-    const video_id = createReqResult.VideoId
-    // Parse base64-encoded values
-    let buff = Buffer.from(createReqResult.UploadAddress, 'base64');
-    const uploadAddress = JSON.parse(buff.toString())
-    buff = Buffer.from(createReqResult.UploadAuth, 'base64');
-    const uploadAuth = JSON.parse(buff.toString())
-    // Create new OSS client
-    const ossVideoClient = new OSS({
-      accessKeyId: uploadAuth.AccessKeyId,
-      accessKeySecret: uploadAuth.AccessKeySecret,
-      stsToken: uploadAuth.SecurityToken,
-      region: uploadAuth.Region,
-      bucket: uploadAddress.Bucket,
-      endpoint: uploadAddress.Endpoint,
-      timeout: 60 * 1000,
-      refreshSTSToken: async () => {
-        var params = {
-          "RegionId": config.VOD_region,
-          "VideoId": video_id
-        }
-        var requestOption = {
-          method: 'POST'
-        };
-        try {
-          const result = await vodClient.request('RefreshUploadVideo', params, requestOption)
-          // Parse base64-encoded values
-          const buff = Buffer.from(result.UploadAuth, 'base64');
-          const uploadAuth = JSON.parse(buff.toString())
-          return uploadAuth
-        } catch(err) {
-          console.log("Could not refresh STS token:", err)
-          return null
-        }
-      }
-    })
-    const fileBuffer = readFileSync(video.path)
-    let uploadReqResult
+    const video_id = upload.id
     try {
       // Uplaod video to bucket
-      uploadReqResult = await ossVideoClient.put(uploadAddress.FileName, fileBuffer)
+      fs.createReadStream(video.path).pipe(request.put(upload.url))
     } catch(err) {
       console.log(err)
-      return ctx.internalServerError("Error on ossVideoClient.put")
+      return ctx.internalServerError("Error on request.put")
     }
     // Upload finished
 
@@ -114,8 +79,7 @@ module.exports = {
     const newVideoData = {
       video_id,
       filename,
-      duration: seconds,
-      url: uploadReqResult.url
+      duration: seconds
     }
     const newVideo = await strapi.entityService.create("plugin::masterclass.mc-video",
       { data: newVideoData }

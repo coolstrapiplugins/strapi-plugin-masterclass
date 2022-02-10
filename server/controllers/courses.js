@@ -173,10 +173,18 @@ module.exports = {
     }
     const currentLecture = student.current_lecture || student.course.lectures[0]
 
+    return {
+      PlayAuth: `https://stream.mux.com/${currentLecture.video.video_id}.m3u8`,
+      VideoId: currentLecture.video.video_id,
+      classesCompleted: student.lectures_seen,
+      currentLectureID: currentLecture.id
+    }
+
     const config = await strapi.service('plugin::masterclass.upload').getConfig()
-    const vodClient = await strapi.service('plugin::masterclass.upload').getVODClient()
-    if (!vodClient) {
-      return ctx.badRequest("VOD client is not properly configured")
+    const muxClient = await strapi.service('plugin::masterclass.upload').getMuxClient()
+    if (!muxClient) {
+      console.log("Mux client is not properly configured:", JSON.stringify({config}))
+      return ctx.badRequest("Mux client is not properly configured")
     }
 
     const params = {
@@ -248,10 +256,19 @@ module.exports = {
     }
 
     const config = await strapi.service('plugin::masterclass.upload').getConfig()
-    const vodClient = await strapi.service('plugin::masterclass.upload').getVODClient()
-    if (!vodClient) {
-      return ctx.badRequest("VOD client is not properly configured")
+    const muxClient = await strapi.service('plugin::masterclass.upload').getMuxClient()
+    if (!muxClient) {
+      console.log("Mux client is not properly configured:", JSON.stringify({config}))
+      return ctx.badRequest("Mux client is not properly configured")
     }
+
+    return {
+      PlayAuth: `https://stream.mux.com/${newCurrentLecture.video.video_id}.m3u8`,
+      VideoId: currentLecture.video.video_id,
+      classesCompleted: student.lectures_seen,
+      currentLectureID: lecture.id
+    }
+
 
     const params = {
       "RegionId": config.VOD_region,
@@ -281,7 +298,7 @@ module.exports = {
       PlayAuth: result.PlayAuth,
       VideoId: newCurrentLecture.video.video_id,
       classesCompleted: student.lectures_seen,
-      currentLecture: lecture
+      currentLectureID: lecture
     }
   },
   async checkLecture(ctx) {

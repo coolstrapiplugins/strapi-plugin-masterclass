@@ -9,7 +9,7 @@ module.exports = {
     const { config } = ctx.request.body
     await strapi.service('plugin::masterclass.upload').setConfig(config)
     return { ok: true }
-  },
+  }/*,
   async getVideoList(ctx) {
     // Get VOD client and config
     const vodClient = await strapi.service('plugin::masterclass.upload').getVODClient()
@@ -47,5 +47,5 @@ module.exports = {
       return await strapi.service('plugin::masterclass.lectures').storeLecture(v)
     }))
     ctx.body = {ok: true}
-  }
+  }*/
 }

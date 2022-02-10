@@ -8,8 +8,7 @@
     "kind": "plugin"
   },
   "dependencies": {
-    "@alicloud/pop-core": "^1.7.10",
-    "ali-oss": "^6.16.0",
+    "@mux/mux-node": "^4.0.0",
     "co": "^4.6.0",
     "stripe": "^8.198.0"
   },
