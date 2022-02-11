@@ -26,7 +26,7 @@ module.exports = {
       config: {
         policies: [],
       }
-    },/*
+    },
     {
       method: 'POST',
       path: '/get-video-list',
@@ -34,7 +34,7 @@ module.exports = {
       config: {
         policies: [],
       }
-    },*/
+    },
     {
       method: 'POST',
       path: '/lectures',

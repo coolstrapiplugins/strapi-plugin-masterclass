@@ -11,23 +11,23 @@ module.exports = ({ strapi }) => ({
   async storeLecture(data) {
     // Save video to database
     const newVideoData = {
-      video_id: data.VideoId,
-      filename: data.Title,
-      duration: parseInt(data.Duration)
+      video_id: data.playback_ids[0].id,
+      filename: data.id,
+      duration: parseInt(data.duration)
     }
     const newVideo = await strapi.entityService.create("plugin::masterclass.mc-video",
       { data: newVideoData }
     )
     // Then create lecture and link the video ID
     const newLectureData = {
-      title: data.Title,
+      title: data.id,
       video: newVideo.id
     }
     const newLecture = await strapi.entityService.create("plugin::masterclass.mc-lecture",
       { data: newLectureData }
     )
     return {
-      title: data.Title,
+      title: data.id,
       video: newVideoData
     }
   }
