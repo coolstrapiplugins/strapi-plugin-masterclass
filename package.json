@@ -1,10 +1,10 @@
 {
   "name": "masterclass",
   "version": "0.0.0",
-  "description": "This is the description of the plugin.",
+  "description": "Learning management system",
   "strapi": {
     "name": "masterclass",
-    "description": "Description of masterclass plugin",
+    "description": "Learning management system",
     "kind": "plugin"
   },
   "dependencies": {
@@ -13,11 +13,11 @@
     "stripe": "^8.198.0"
   },
   "author": {
-    "name": "A Strapi developer"
+    "name": "Luis G. Villegas"
   },
   "maintainers": [
     {
-      "name": "A Strapi developer"
+      "name": "Luis G. Villegas"
     }
   ],
   "engines": {
