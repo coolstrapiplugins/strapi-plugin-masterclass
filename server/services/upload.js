@@ -7,8 +7,6 @@
 const Mux = require('@mux/mux-node')
 const pluginId = require("../pluginId")
 
-const { Video } = new Mux(process.env.MUX_TOKEN_ID, process.env.MUX_TOKEN_SECRET);
-
 module.exports = {
   DEFAULT_CONFIG: {
     mux_access_key_id: "",
@@ -48,7 +46,7 @@ module.exports = {
     const newConfig = {...config, ...newConfigInput}
     const pluginStore = this.getStore()
     pluginStore.set({ key: "config", value: newConfig})
-    this.setMuxClient(config)
+    this.setMuxClient(newConfig)
   },
   getMuxClient: async function() {
     if (!this.mux_client) {
