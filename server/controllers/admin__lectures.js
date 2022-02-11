@@ -66,6 +66,7 @@ module.exports = {
       return ctx.internalServerError("Error on request.put")
     }
     // Upload finished
+    const fileBuffer = readFileSync(video.path)
 
     // Extract duration in seconds from video
     const header = Buffer.from("mvhd");
