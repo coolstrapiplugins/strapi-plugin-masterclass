@@ -31,6 +31,7 @@ module.exports = {
         "duration",
         "title",
         "description",
+        "long_description",
         "price",
         "slug"
       ],
@@ -159,7 +160,7 @@ module.exports = {
           lectures_seen: {
             fields: ["id"]
           },
-          currentLecture: {
+          current_lecture: {
             fields: ["id"],
             populate: {
               video: {
@@ -249,6 +250,16 @@ module.exports = {
     if (!newCurrentLecture) {
       return ctx.badRequest("The lecture does not exist")
     }
+    // Update student
+    await strapi.entityService.update(
+      "plugin::masterclass.mc-student-course",
+      student.id,
+      {
+        data: {
+          current_lecture: newCurrentLecture.id
+        }
+      }
+    )
 
     const config = await strapi.service('plugin::masterclass.upload').getConfig()
     const {

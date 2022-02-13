@@ -47,6 +47,9 @@
       "relation": "oneToMany",
       "target": "plugin::masterclass.mc-student-course",
       "mappedBy": "course"
+    },
+    "long_description": {
+      "type": "richtext"
     }
   }
 }
