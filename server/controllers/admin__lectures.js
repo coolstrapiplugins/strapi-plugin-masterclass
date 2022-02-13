@@ -1,7 +1,8 @@
 'use strict';
 
 const fs = require('fs');
-const request = require('request');
+const request = require('request-promise-native');
+const uuid = require('uuid');
 
 module.exports = {
   async find(ctx) {
@@ -38,49 +39,30 @@ module.exports = {
       return ctx.badRequest("Config is not valid: " + JSON.stringify(config))
     }
 
-
     const { video } = files
     const { title } = data
     const filename = video.name
 
-
+    const tempID = uuid.v1();
     let upload
     try {
       const { Video } = muxClient
       // upload.url is where the video will be put.
       upload = await Video.Uploads.create({
         new_asset_settings: {
-          playback_policy: 'public'
+          passthrough: tempID,
+          playback_policy: 'signed'
         }
       })
     } catch(err) {
       console.log(err)
       return ctx.internalServerError("Error on Video.Uploads.create")
     }
-    const video_id = upload.id
-    try {
-      // Uplaod video to bucket
-      fs.createReadStream(video.path).pipe(request.put(upload.url))
-    } catch(err) {
-      console.log(err)
-      return ctx.internalServerError("Error on request.put")
-    }
-    // Upload finished
-    const fileBuffer = readFileSync(video.path)
-
-    // Extract duration in seconds from video
-    const header = Buffer.from("mvhd");
-    const start = fileBuffer.indexOf(header) + 17;
-    const timeScale = fileBuffer.readUInt32BE(start, 4);
-    const duration = fileBuffer.readUInt32BE(start + 4, 4);
-    const audioLength = Math.floor(duration/timeScale * 1000) / 1000;
-    const seconds = parseFloat(audioLength.toFixed(0))
-
     // Save video to database
     const newVideoData = {
-      video_id,
+      temp_id: tempID,
       filename,
-      duration: seconds
+      ready: false
     }
     const newVideo = await strapi.entityService.create("plugin::masterclass.mc-video",
       { data: newVideoData }
@@ -93,6 +75,16 @@ module.exports = {
     const newLecture = await strapi.entityService.create("plugin::masterclass.mc-lecture",
       { data: newLectureData }
     )
+
+    try {
+      // Uplaod video to bucket
+      await fs.createReadStream(video.path).pipe(request.put(upload.url))
+    } catch(err) {
+      console.log(err)
+      return ctx.internalServerError("Error on request.put")
+    }
+    // Upload finished
+
     return {
       newLecture: {
         title,

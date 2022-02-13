@@ -114,6 +114,14 @@ module.exports = {
       config: {
         policies: [],
       }
+    },
+    {
+      method: 'POST',
+      path: '/upload-status',
+      handler: 'uploads.update',
+      config: {
+        policies: [],
+      }
     }
   ]
 }

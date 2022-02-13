@@ -10,7 +10,9 @@ const pluginId = require("../pluginId")
 module.exports = {
   DEFAULT_CONFIG: {
     mux_access_key_id: "",
-    mux_access_key_secret: ""
+    mux_access_key_secret: "",
+    mux_signing_key_id: "",
+    mux_signing_private_key: ""
   },
   mux_client: null,
   isValidConfig: function(config) {

@@ -18,6 +18,12 @@
       "target": "plugin::masterclass.mc-lecture",
       "inversedBy": "video"
     },
+    "ready": {
+      "type": "boolean"
+    },
+    "temp_id": {
+      "type": "string"
+    },
     "video_id": {
       "type": "string"
     },

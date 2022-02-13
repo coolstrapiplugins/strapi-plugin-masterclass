@@ -39,8 +39,8 @@ const CreateLectureModal = (props) => {
     formData.append("video", video, video.name);
     formData.append("data", JSON.stringify({title}));
     try {
-      const { newLecture } = await axios.post(url, formData)
-      addLecture(newLecture)
+      const { data } = await axios.post(url, formData)
+      addLecture(data.newLecture)
     } catch(err) {
       console.log(err)
       setError("Could not submit video")

@@ -13,6 +13,7 @@ import { TextInput } from '@strapi/design-system/TextInput';
 import { Button } from '@strapi/design-system/Button';
 import { Tooltip } from '@strapi/design-system/Tooltip';
 import { Stack } from '@strapi/design-system/Stack';
+import { Textarea } from '@strapi/design-system/Textarea';
 import axios from "../../utils/axiosInstance"
 
 const SettingsPage = () => {
@@ -20,7 +21,9 @@ const SettingsPage = () => {
     initial: null,
     current: {
       mux_access_key_id: null,
-      mux_access_key_secret: null
+      mux_access_key_secret: null,
+      mux_signing_key_id: null,
+      mux_signing_private_key: null
     }
   })
   const [sending, setSending] = useState(false)
@@ -66,6 +69,8 @@ const SettingsPage = () => {
 
     let mux_access_key_id = config.current.mux_access_key_id !== null
     let mux_access_key_secret = config.current.mux_access_key_secret !== null
+    let mux_signing_key_id = config.current.mux_signing_key_id !== null
+    let mux_signing_private_key = config.current.mux_signing_private_key !== null
 
     if (mux_access_key_id) {
       mux_access_key_id =
@@ -75,8 +80,16 @@ const SettingsPage = () => {
       mux_access_key_secret =
         config.current.mux_access_key_secret !== config.initial.mux_access_key_secret
     }
+    if (mux_signing_key_id) {
+      mux_signing_key_id =
+        config.current.mux_signing_key_id !== config.initial.mux_signing_key_id
+    }
+    if (mux_signing_private_key) {
+      mux_signing_private_key =
+        config.current.mux_signing_private_key !== config.initial.mux_signing_private_key
+    }
     return (
-      mux_access_key_id || mux_access_key_secret
+      mux_access_key_id || mux_access_key_secret || mux_signing_key_id || mux_signing_private_key
     )
   }
   const handleSubmit = async (e) => {
@@ -85,7 +98,9 @@ const SettingsPage = () => {
     if (
       !( // at least one of the fields should not be null
         config.current.mux_access_key_id !== null ||
-        config.current.mux_access_key_secret !== null
+        config.current.mux_access_key_secret !== null ||
+        config.current.mux_signing_key_id !== null ||
+        config.current.mux_signing_private_key !== null
       )
     ) {
       return
@@ -155,7 +170,27 @@ const SettingsPage = () => {
               <Typography fontWeight="bold">
                 {
                   !config.initial ? "loading..." :
-                  config.initial.mux_access_key_secret || "unset"
+                  config.initial.mux_access_key_secret ?
+                  config.initial.mux_access_key_secret.substr(0,45)+"..." : "unset"
+                }
+              </Typography>
+            </Typography>
+            <Typography>
+              Mux Signing Key ID: {" "}
+              <Typography fontWeight="bold">
+                {
+                  !config.initial ? "loading..." :
+                  config.initial.mux_signing_key_id || "unset"
+                }
+              </Typography>
+            </Typography>
+            <Typography>
+              Mux Signing Private Key: {" "}
+              <Typography fontWeight="bold">
+                {
+                  !config.initial ? "loading..." :
+                  config.initial.mux_signing_private_key ?
+                  config.initial.mux_signing_private_key.substr(0,45)+"..." : "unset"
                 }
               </Typography>
             </Typography>
@@ -186,6 +221,29 @@ const SettingsPage = () => {
                 }
                 required={true}
               />
+              <TextInput
+                label="Mux Signing Key ID"
+                name="mux_signing_key_id"
+                onChange={e => handleChange("mux_signing_key_id", e.target.value)}
+                value={
+                  config.current.mux_signing_key_id !== null ?
+                    config.current.mux_signing_key_id
+                  : config.initial ? config.initial.mux_signing_key_id : ""
+                }
+                required={true}
+              />
+              <Textarea
+                placeholder="Base64-encoded Private Key"
+                label="Mux Signing Private Key"
+                name="mux_signing_private_key"
+                onChange={e => handleChange("mux_signing_private_key", e.target.value)}
+              >
+                {
+                  config.current.mux_signing_private_key !== null ?
+                    config.current.mux_signing_private_key
+                  : config.initial ? config.initial.mux_signing_private_key : ""
+                }
+              </Textarea>
               <Box>
                 <Button
                   type="submit"

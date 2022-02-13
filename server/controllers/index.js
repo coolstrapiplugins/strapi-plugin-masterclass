@@ -6,6 +6,7 @@ const admin__upload = require('./admin__upload');
 const admin__stripe = require('./admin__stripe');
 const courses = require("./courses");
 const orders = require("./orders");
+const uploads = require("./uploads");
 
 module.exports = {
   admin__lectures,
@@ -13,5 +14,6 @@ module.exports = {
   admin__upload,
   admin__stripe,
   courses,
-  orders
+  orders,
+  uploads
 };

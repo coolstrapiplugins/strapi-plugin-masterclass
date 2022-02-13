@@ -1,5 +1,7 @@
 'use strict';
 
+const { JWT } = require('@mux/mux-node');
+
 module.exports = {
   async find(ctx) {
     const courses = await strapi.entityService.findMany("plugin::masterclass.mc-course", {
@@ -173,36 +175,29 @@ module.exports = {
     }
     const currentLecture = student.current_lecture || student.course.lectures[0]
 
-    return {
-      PlayAuth: `https://stream.mux.com/${currentLecture.video.video_id}.m3u8`,
-      VideoId: currentLecture.video.video_id,
-      classesCompleted: student.lectures_seen,
-      currentLectureID: currentLecture.id
-    }
-
     const config = await strapi.service('plugin::masterclass.upload').getConfig()
-    const muxClient = await strapi.service('plugin::masterclass.upload').getMuxClient()
-    if (!muxClient) {
-      console.log("Mux client is not properly configured:", JSON.stringify({config}))
-      return ctx.badRequest("Mux client is not properly configured")
+    const {
+      mux_signing_key_id,
+      mux_signing_private_key
+    } = config
+
+    if (!mux_signing_key_id || !mux_signing_private_key) {
+      console.log("Config is not valid", config)
+      return ctx.internalServerError("Config is not valid")
     }
 
-    const params = {
-      "RegionId": config.VOD_region,
-      "VideoId": currentLecture.video.video_id
-    }
-    const requestOption = {
-      method: 'POST'
-    }
-    let result
-    try {
-      result = await vodClient.request('GetVideoPlayAuth', params, requestOption)
-    } catch(err) {
-      console.log(err)
-      return ctx.internalServerError("Error on GetVideoPlayAuth")
-    }
+    let baseOptions = {
+      keyId: mux_signing_key_id,
+      keySecret: mux_signing_private_key,
+      expiration: "2h"
+    };
+
+    const playbackID = currentLecture.video.video_id
+
+    const token = JWT.sign(playbackID, { ...baseOptions, type: 'video'});
+
     return {
-      PlayAuth: result.PlayAuth,
+      PlayAuth: `https://stream.mux.com/${playbackID}.m3u8?token=${token}`,
       VideoId: currentLecture.video.video_id,
       classesCompleted: student.lectures_seen,
       currentLectureID: currentLecture.id
@@ -256,49 +251,31 @@ module.exports = {
     }
 
     const config = await strapi.service('plugin::masterclass.upload').getConfig()
-    const muxClient = await strapi.service('plugin::masterclass.upload').getMuxClient()
-    if (!muxClient) {
-      console.log("Mux client is not properly configured:", JSON.stringify({config}))
-      return ctx.badRequest("Mux client is not properly configured")
+    const {
+      mux_signing_key_id,
+      mux_signing_private_key
+    } = config
+
+    if (!mux_signing_key_id || !mux_signing_private_key) {
+      console.log("Config is not valid", config)
+      return ctx.internalServerError("Config is not valid")
     }
+
+    let baseOptions = {
+      keyId: mux_signing_key_id,
+      keySecret: mux_signing_private_key,
+      expiration: "2h"
+    };
+
+    const playbackID = newCurrentLecture.video.video_id
+
+    const token = JWT.sign(playbackID, { ...baseOptions, type: 'video'});
 
     return {
-      PlayAuth: `https://stream.mux.com/${newCurrentLecture.video.video_id}.m3u8`,
-      VideoId: currentLecture.video.video_id,
-      classesCompleted: student.lectures_seen,
-      currentLectureID: lecture.id
-    }
-
-
-    const params = {
-      "RegionId": config.VOD_region,
-      "VideoId": newCurrentLecture.video.video_id
-    }
-    const requestOption = {
-      method: 'POST'
-    }
-    let result
-    try {
-      result = await vodClient.request('GetVideoPlayAuth', params, requestOption)
-    } catch(err) {
-      console.log(err)
-      return ctx.internalServerError("Error on GetVideoPlayAuth")
-    }
-    // Update current lecture
-    await strapi.entityService.update(
-      "plugin::masterclass.mc-student-course",
-      student.id,
-      {
-        data: {
-          current_lecture: lecture
-        }
-      }
-    )
-    return {
-      PlayAuth: result.PlayAuth,
+      PlayAuth: `https://stream.mux.com/${playbackID}.m3u8?token=${token}`,
       VideoId: newCurrentLecture.video.video_id,
       classesCompleted: student.lectures_seen,
-      currentLectureID: lecture
+      currentLectureID: newCurrentLecture.id
     }
   },
   async checkLecture(ctx) {
@@ -380,7 +357,7 @@ module.exports = {
       student.id,
       {
         data: {
-          currentLecture: newCurrentLecture.id,
+          currentLecture: newCurrentLecture ? newCurrentLecture.id : null,
           lectures_seen: classesCompleted
         }
       }
