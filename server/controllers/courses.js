@@ -17,6 +17,9 @@ module.exports = {
               fields: ["duration"]
             }
           }
+        },
+        category: {
+          fields: ["slug", "title"]
         }
       }
     })
@@ -37,15 +40,18 @@ module.exports = {
       ],
       populate: {
         thumbnail: {
-          fields: ["name", "url"]
+          select: ["name", "url"]
         },
         lectures: {
-          fields: ["title"],
+          select: ["title"],
           populate: {
             video: {
-              fields: ["duration"]
+              select: ["duration"]
             }
           }
+        },
+        category: {
+          select: ["slug", "title"]
         }
       }
     })
@@ -77,7 +83,7 @@ module.exports = {
           },
           populate: {
             lectures_seen: {
-              fields: ["id"]
+              select: ["id"]
             }
           }
         }
@@ -116,7 +122,7 @@ module.exports = {
         },
         populate: {
           lectures_seen: {
-            fields: ["id"]
+            select: ["id"]
           }
         }
       }
@@ -151,20 +157,20 @@ module.exports = {
               lectures: {
                 populate: {
                   video: {
-                    fields: ["id", "video_id"]
+                    select: ["id", "video_id"]
                   }
                 }
               }
             }
           },
           lectures_seen: {
-            fields: ["id"]
+            select: ["id"]
           },
           current_lecture: {
-            fields: ["id"],
+            select: ["id"],
             populate: {
               video: {
-                fields: ["video_id"]
+                select: ["video_id"]
               }
             }
           }
@@ -224,7 +230,7 @@ module.exports = {
         },
         populate: {
           lectures_seen: {
-            fields: ["id"]
+            select: ["id"]
           }
         }
       }
@@ -242,7 +248,7 @@ module.exports = {
         },
         populate: {
           video: {
-            fields: ["video_id"]
+            select: ["video_id"]
           }
         }
       }
@@ -306,15 +312,15 @@ module.exports = {
           course: {
             populate: {
               lectures: {
-                fields: ["id"]
+                select: ["id"]
               }
             }
           },
           lectures_seen: {
-            fields: ["id"]
+            select: ["id"]
           },
           current_lecture: {
-            fields: ["id"]
+            select: ["id"]
           }
         }
       }

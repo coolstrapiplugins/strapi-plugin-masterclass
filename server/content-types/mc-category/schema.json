@@ -1,10 +1,10 @@
 {
   "kind": "collectionType",
-  "collectionName": "mc_course",
+  "collectionName": "mc_category",
   "info": {
-    "singularName": "mc-course",
-    "pluralName": "mc-courses",
-    "displayName": "Course",
+    "singularName": "mc-category",
+    "pluralName": "mc-categories",
+    "displayName": "Category",
     "description": ""
   },
   "options": {
@@ -15,20 +15,8 @@
     "title": {
       "type": "string"
     },
-    "lectures": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "plugin::masterclass.mc-lecture",
-      "mappedBy": "course"
-    },
-    "duration": {
-      "type": "integer"
-    },
     "description": {
       "type": "text"
-    },
-    "price": {
-      "type": "decimal"
     },
     "thumbnail": {
       "type": "media",
@@ -42,26 +30,29 @@
       "type": "uid",
       "targetField": "title"
     },
-    "students": {
+    "subcategories": {
       "type": "relation",
       "relation": "oneToMany",
-      "target": "plugin::masterclass.mc-student-course",
-      "mappedBy": "course"
+      "target": "plugin::masterclass.mc-category",
+      "mappedBy": "parent_category"
     },
-    "long_description": {
-      "type": "richtext"
-    },
-    "category": {
+    "parent_category": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::masterclass.mc-category",
-      "inversedBy": "courses"
+      "inversedBy": "subcategories"
     },
-    "featured_in": {
+    "courses": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "plugin::masterclass.mc-course",
+      "mappedBy": "category"
+    },
+    "featured_courses": {
       "type": "relation",
       "relation": "manyToMany",
-      "target": "plugin::masterclass.mc-category",
-      "inversedBy": "featured_courses"
+      "target": "plugin::masterclass.mc-course",
+      "inversedBy": "featured_in"
     }
   }
 }

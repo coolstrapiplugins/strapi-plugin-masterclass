@@ -122,6 +122,38 @@ module.exports = {
       config: {
         policies: [],
       }
+    },
+    {
+      method: 'GET',
+      path: '/categories/index',
+      handler: 'categories.index',
+      config: {
+        policies: [],
+      }
+    },
+    {
+      method: 'GET',
+      path: '/categories/navigation',
+      handler: 'categories.navigation',
+      config: {
+        policies: [],
+      }
+    },
+    {
+      method: 'GET',
+      path: '/categories/:slug/tree',
+      handler: 'categories.categoryTree',
+      config: {
+        policies: [],
+      }
+    },
+    {
+      method: 'GET',
+      path: '/categories/:slug',
+      handler: 'categories.summary',
+      config: {
+        policies: [],
+      }
     }
   ]
 }
