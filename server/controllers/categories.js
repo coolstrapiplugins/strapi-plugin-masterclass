@@ -9,15 +9,16 @@ module.exports = {
   */
   async index(ctx) {
     const categories = await strapi.entityService.findMany("plugin::masterclass.mc-category", {
-      filter: {
-        parent_category: null
-      },
+      filter: {},
       populate: {
         subcategories: {
-          fields: ["slug", "title", "id"]
+          select: ["slug", "title", "id"]
+        },
+        parent_category: {
+          select: ["id"]
         },
         featured_courses: {
-          fields: [
+          select: [
             "id",
             "duration",
             "title",
@@ -28,13 +29,13 @@ module.exports = {
           ],
           populate: {
             thumbnail: {
-              fields: ["name", "url"]
+              select: ["name", "url"]
             },
             lectures: {
-              fields: []
+              select: []
             },
             category: {
-              fields: ["slug", "title"]
+              select: ["slug", "title"]
             }
           }
         }
@@ -78,15 +79,15 @@ module.exports = {
   async navigation(ctx) {
     const categories = await strapi.entityService.findMany("plugin::masterclass.mc-category", {
       fields: ["slug", "title", "id"],
-      filter: {
-        parent_category: null
-      },
       populate: {
         subcategories: {
-          fields: ["slug", "title", "id"]
+          select: ["slug", "title", "id"]
+        },
+        parent_category: {
+          select: ["id"]
         },
         courses: {
-          fields: ["slug", "title", "id"]
+          select: ["slug", "title", "id"]
         }
       }
     })
@@ -97,10 +98,10 @@ module.exports = {
           const category = await strapi.entityService.findOne("plugin::masterclass.mc-category", c.id, {
             populate: {
               subcategories: {
-                fields: ["slug", "title", "id"]
+                select: ["slug", "title", "id"]
               },
               courses: {
-                fields: ["slug", "title", "id"]
+                select: ["slug", "title", "id"]
               }
             }
           })
@@ -192,7 +193,7 @@ const eachChild = async (children, childKey, cb) => {
   await Promise.all(children.map(async (child, i) => {
     const result = await cb(child)
     if (result[childKey] && result[childKey].length) {
-      await eachChild(result[childKey], cb)
+      await eachChild(result[childKey], childKey, cb)
     }
     children[i] = result
   }))
