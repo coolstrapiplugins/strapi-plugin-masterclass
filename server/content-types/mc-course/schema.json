@@ -15,12 +15,6 @@
     "title": {
       "type": "string"
     },
-    "lectures": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "plugin::masterclass.mc-lecture",
-      "mappedBy": "course"
-    },
     "duration": {
       "type": "integer"
     },
@@ -62,6 +56,12 @@
       "relation": "manyToMany",
       "target": "plugin::masterclass.mc-category",
       "inversedBy": "featured_courses"
+    },
+    "lectures": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "plugin::masterclass.mc-lecture",
+      "inversedBy": "courses"
     }
   }
 }

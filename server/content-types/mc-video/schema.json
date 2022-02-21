@@ -12,11 +12,11 @@
     "comment": ""
   },
   "attributes": {
-    "lecture": {
+    "lectures": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "oneToMany",
       "target": "plugin::masterclass.mc-lecture",
-      "inversedBy": "video"
+      "mappedBy": "video"
     },
     "ready": {
       "type": "boolean"

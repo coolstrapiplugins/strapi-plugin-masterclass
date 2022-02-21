@@ -8,18 +8,18 @@ module.exports = {
       filters: {},
       populate: {
         thumbnail: {
-          fields: ["name", "url"]
+          select: ["name", "url"]
         },
         lectures: {
-          fields: ["title"],
+          select: ["title"],
           populate: {
             video: {
-              fields: ["duration"]
+              select: ["duration"]
             }
           }
         },
         category: {
-          fields: ["slug", "title"]
+          select: ["slug", "title"]
         }
       }
     })

@@ -8,17 +8,17 @@ module.exports = {
         sort: { createdAt: "DESC" },
         populate: {
           lectures: {
-            fields: ["id", "title"],
+            select: ["id", "title"],
             populate: {
               video: {
-                fields: ["video_id", "filename", "url", "duration"]
+                select: ["video_id", "filename", "url", "duration"]
               }
             }
           },
           students: {
             populate: {
               user: {
-                fields: ["id", "username", "email"]
+                select: ["id", "username", "email"]
               }
             }
           }
@@ -34,7 +34,7 @@ module.exports = {
       fields: ["duration"],
       populate: {
         lectures: {
-          fields: ["id"]
+          select: ["id"]
         }
       }
     })
@@ -48,7 +48,7 @@ module.exports = {
       },
       populate: {
         video: {
-          fields: ["duration"]
+          select: ["duration"]
         }
       }
     })

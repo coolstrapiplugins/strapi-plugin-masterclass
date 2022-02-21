@@ -12,9 +12,9 @@
     "comment": ""
   },
   "attributes": {
-    "course": {
+    "courses": {
       "type": "relation",
-      "relation": "manyToOne",
+      "relation": "manyToMany",
       "target": "plugin::masterclass.mc-course",
       "inversedBy": "lectures"
     },
@@ -23,9 +23,9 @@
     },
     "video": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "manyToOne",
       "target": "plugin::masterclass.mc-video",
-      "inversedBy": "lecture"
+      "inversedBy": "lectures"
     }
   }
 }

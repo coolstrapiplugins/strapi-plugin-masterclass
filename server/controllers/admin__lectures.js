@@ -12,10 +12,10 @@ module.exports = {
         filters: {},
         populate: {
           course: {
-            fields: ["id", "title"]
+            select: ["id", "title"]
           },
           video: {
-            fields: ["video_id", "filename", "duration", "url"]
+            select: ["video_id", "filename", "duration", "url"]
           }
         }
       }
