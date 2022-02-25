@@ -417,7 +417,7 @@ module.exports = {
     if (!user) {
       return ctx.badRequest("There must be an user")
     }
-    const courses = await strapi.entityService.findMany("plugin::masterclass.mc-student-course", {
+    let courses = await strapi.entityService.findMany("plugin::masterclass.mc-student-course", {
       filters: {
         student: user.id
       },
@@ -442,11 +442,20 @@ module.exports = {
                   fields: ["duration"]
                 }
               }
+            },
+            category: {
+              select: ["slug", "title", "id"]
             }
           }
         }
       }
     })
+    courses = await Promise.all(courses.map(async c => {
+      if (c.category) {
+        c.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(c)
+      }
+      return c
+    }))
     ctx.body = { courses }
   }
 }
