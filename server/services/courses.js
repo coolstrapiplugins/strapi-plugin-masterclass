@@ -38,5 +38,26 @@ module.exports = ({ strapi }) => ({
         }
       })
     }))
+  },
+  async buildAbsoluteSlug(course) {
+    let { category: { id: c_id } } = course
+    const slugs = []
+    let category = {}
+    do {
+      category = await strapi.entityService.findOne("plugin::masterclass.mc-category", c_id, {
+        fields: ["slug"],
+        populate: {
+          parent_category: {
+            fields: ["id"]
+          }
+        }
+      })
+      slugs.unshift(category.slug)
+      if (category.parent_category) {
+        c_id = category.parent_category.id
+      }
+    } while (category.parent_category !== null)
+
+    return slugs.join("/")
   }
 })
