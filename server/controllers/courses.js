@@ -4,25 +4,31 @@ const { JWT } = require('@mux/mux-node');
 
 module.exports = {
   async find(ctx) {
-    const courses = await strapi.entityService.findMany("plugin::masterclass.mc-course", {
+    let courses = await strapi.entityService.findMany("plugin::masterclass.mc-course", {
       filters: {},
       populate: {
         thumbnail: {
-          select: ["name", "url"]
+          fields: ["name", "url"]
         },
         lectures: {
-          select: ["title"],
+          fields: ["title"],
           populate: {
             video: {
-              select: ["duration"]
+              fields: ["duration"]
             }
           }
         },
         category: {
-          select: ["slug", "title"]
+          fields: ["slug", "title", "id"]
         }
       }
     })
+    courses = await Promise.all(courses.map(async c => {
+      if (c.category) {
+        c.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(c)
+      }
+      return c
+    }))
     return { courses }
   },
   async findOne(ctx) {
@@ -51,10 +57,14 @@ module.exports = {
           }
         },
         category: {
-          select: ["slug", "title"]
+          select: ["slug", "title", "id"]
         }
       }
     })
+    if (course && course.category) {
+      course.category.slug =
+      await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(course)
+    }
     return course
   },
   async findSlugs(ctx) {
