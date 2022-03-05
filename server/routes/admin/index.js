@@ -52,6 +52,22 @@ module.exports = {
       }
     },
     {
+      method: 'POST',
+      path: '/ejercicios',
+      handler: 'admin__ejercicios.create',
+      config: {
+        policies: [],
+      }
+    },
+    {
+      method: 'GET',
+      path: '/ejercicios',
+      handler: 'admin__ejercicios.find',
+      config: {
+        policies: [],
+      }
+    },
+    {
       method: 'GET',
       path: '/config',
       handler: 'admin__upload.getConfig',

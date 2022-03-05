@@ -154,6 +154,14 @@ module.exports = {
       config: {
         policies: [],
       }
+    },
+    {
+      method: 'GET',
+      path: '/ejercicios/:slug',
+      handler: 'ejercicios.findOne',
+      config: {
+        policies: [],
+      }
     }
   ]
 }
