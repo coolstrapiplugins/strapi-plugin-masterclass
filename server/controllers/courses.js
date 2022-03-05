@@ -415,10 +415,11 @@ module.exports = {
       }
     })
 
-    let res = { courses: [] }
-
-    if (student) {
-      res = { courses: student.courses }
+    let res = student
+    if (!student) {
+      res = {
+        courses: []
+      }
     }
 
     ctx.body = res
@@ -467,17 +468,19 @@ module.exports = {
       }
     })
 
-    let res = { courses: [] }
-
-    if (student) {
-      student.courses = await Promise.all(student.courses.map(async c => {
-        if (c.category) {
-          c.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(c)
-        }
-        return c
-      }))
-      res = { courses: student.courses }
+    let res = student
+    if (!student) {
+      res = {
+        courses: [],
+        ejercicios: []
+      }
     }
+    res.courses = await Promise.all(res.courses.map(async c => {
+      if (c.category) {
+        c.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(c)
+      }
+      return c
+    }))
 
     ctx.body = res
   }
