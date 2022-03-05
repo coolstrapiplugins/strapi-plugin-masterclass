@@ -393,12 +393,37 @@ module.exports = {
       ok: true
     }
   },
-  // this handler only returns the IDs of all the courses purchased by the user
+  // this handler only returns the IDs of all the courses and ejercicios purchased by the user
   async getItemsPurchased(ctx) {
     const { user } = ctx.state
     if (!user) {
       return ctx.badRequest("There must be an user")
     }
+    const student = await strapi.db.query("plugin::masterclass.mc-student").findOne({
+      where: {
+        user: user.id
+      },
+      populate: {
+        courses: {
+          populate: {
+            course: {
+              select: ["id"]
+            }
+          }
+        },
+        ejercicios: {
+          select: ["id"]
+        }
+      }
+    })
+    let res = student
+    if (!student) {
+      res = {
+        courses: [],
+        ejercicios: []
+      }
+    }
+    /*
     const courses = await strapi.entityService.findMany("plugin::masterclass.mc-student-course", {
       filters: {
         student: user.id
@@ -409,7 +434,8 @@ module.exports = {
         }
       }
     })
-    ctx.body = { courses }
+    */
+    ctx.body = res
   },
   // this handler returns the full information of all the courses purchased by the user
   async getMyLearning(ctx) {
@@ -417,15 +443,44 @@ module.exports = {
     if (!user) {
       return ctx.badRequest("There must be an user")
     }
-    let courses = await strapi.entityService.findMany("plugin::masterclass.mc-student-course", {
-      filters: {
-        student: user.id
+    const student = await strapi.db.query("plugin::masterclass.mc-student").findOne({
+      where: {
+        user: user.id
       },
       populate: {
-        course: {
-          fields: [
+        courses: {
+          populate: {
+            course: {
+              select: [
+                "id",
+                "duration",
+                "title",
+                "description",
+                "price",
+                "slug"
+              ],
+              populate: {
+                thumbnail: {
+                  select: ["name", "url"]
+                },
+                lectures: {
+                  select: ["title"],
+                  populate: {
+                    video: {
+                      select: ["duration"]
+                    }
+                  }
+                },
+                category: {
+                  select: ["slug", "title", "id"]
+                }
+              }
+            }
+          }
+        },
+        ejercicios: {
+          select: [
             "id",
-            "duration",
             "title",
             "description",
             "price",
@@ -433,15 +488,7 @@ module.exports = {
           ],
           populate: {
             thumbnail: {
-              fields: ["name", "url"]
-            },
-            lectures: {
-              fields: ["title"],
-              populate: {
-                video: {
-                  fields: ["duration"]
-                }
-              }
+              select: ["name", "url"]
             },
             category: {
               select: ["slug", "title", "id"]
@@ -450,12 +497,25 @@ module.exports = {
         }
       }
     })
-    courses = await Promise.all(courses.map(async c => {
+    let res = student
+    if (!student) {
+      res = {
+        courses: [],
+        ejercicios: []
+      }
+    }
+    res.courses = await Promise.all(res.courses.map(async c => {
       if (c.category) {
         c.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(c)
       }
       return c
     }))
-    ctx.body = { courses }
+    res.ejercicios = await Promise.all(res.ejercicios.map(async e => {
+      if (e.category) {
+        e.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(e)
+      }
+      return e
+    }))
+    ctx.body = res
   }
 }
