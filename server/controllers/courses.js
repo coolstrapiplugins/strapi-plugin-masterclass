@@ -88,7 +88,7 @@ module.exports = {
       ).findOne(
         {
           where: {
-            student: user.id,
+            student: {user: user.id},
             course: id
           },
           populate: {
@@ -127,7 +127,7 @@ module.exports = {
     ).findOne(
       {
         where: {
-          student: user.id,
+          student: {user: user.id},
           course: id
         },
         populate: {
@@ -158,7 +158,7 @@ module.exports = {
     ).findOne(
       {
         where: {
-          student: user.id,
+          student: {user: user.id},
           course: id
         },
         populate: {
@@ -235,7 +235,7 @@ module.exports = {
     ).findOne(
       {
         where: {
-          student: user.id,
+          student: {user: user.id},
           course: id
         },
         populate: {
@@ -315,7 +315,7 @@ module.exports = {
     ).findOne(
       {
         where: {
-          student: user.id,
+          student: {user: user.id},
           course: id
         },
         populate: {
@@ -423,18 +423,6 @@ module.exports = {
         ejercicios: []
       }
     }
-    /*
-    const courses = await strapi.entityService.findMany("plugin::masterclass.mc-student-course", {
-      filters: {
-        student: user.id
-      },
-      populate: {
-        course: {
-          fields: ["id"]
-        }
-      }
-    })
-    */
     ctx.body = res
   },
   // this handler returns the full information of all the courses purchased by the user
