@@ -13,6 +13,7 @@ import { TextInput } from '@strapi/design-system/TextInput';
 import { Button } from '@strapi/design-system/Button';
 import { Tooltip } from '@strapi/design-system/Tooltip';
 import { Stack } from '@strapi/design-system/Stack';
+import { Divider } from '@strapi/design-system/Divider';
 import { Textarea } from '@strapi/design-system/Textarea';
 import axios from "../../utils/axiosInstance"
 
@@ -23,7 +24,11 @@ const SettingsPage = () => {
       mux_access_key_id: null,
       mux_access_key_secret: null,
       mux_signing_key_id: null,
-      mux_signing_private_key: null
+      mux_signing_private_key: null,
+      aws_bucket: null,
+      aws_region: null,
+      aws_access_key_id: null,
+      aws_access_key_secret: null
     }
   })
   const [sending, setSending] = useState(false)
@@ -71,6 +76,10 @@ const SettingsPage = () => {
     let mux_access_key_secret = config.current.mux_access_key_secret !== null
     let mux_signing_key_id = config.current.mux_signing_key_id !== null
     let mux_signing_private_key = config.current.mux_signing_private_key !== null
+    let aws_bucket = config.current.aws_bucket !== null
+    let aws_region = config.current.aws_region !== null
+    let aws_access_key_id = config.current.aws_access_key_id !== null
+    let aws_access_key_secret = config.current.aws_access_key_secret !== null
 
     if (mux_access_key_id) {
       mux_access_key_id =
@@ -88,19 +97,45 @@ const SettingsPage = () => {
       mux_signing_private_key =
         config.current.mux_signing_private_key !== config.initial.mux_signing_private_key
     }
+    if (aws_bucket) {
+      aws_bucket =
+        config.current.aws_bucket !== config.initial.aws_bucket
+    }
+    if (aws_region) {
+      aws_region =
+        config.current.aws_region !== config.initial.aws_region
+    }
+    if (aws_access_key_id) {
+      aws_access_key_id =
+        config.current.aws_access_key_id !== config.initial.aws_access_key_id
+    }
+    if (aws_access_key_secret) {
+      aws_access_key_secret =
+        config.current.aws_access_key_secret !== config.initial.aws_access_key_secret
+    }
     return (
-      mux_access_key_id || mux_access_key_secret || mux_signing_key_id || mux_signing_private_key
+      mux_access_key_id ||
+      mux_access_key_secret ||
+      mux_signing_key_id ||
+      mux_signing_private_key ||
+      aws_bucket ||
+      aws_region ||
+      aws_access_key_id ||
+      aws_access_key_secret
     )
   }
   const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log("submitting", {config})
     if (
       !( // at least one of the fields should not be null
         config.current.mux_access_key_id !== null ||
         config.current.mux_access_key_secret !== null ||
         config.current.mux_signing_key_id !== null ||
-        config.current.mux_signing_private_key !== null
+        config.current.mux_signing_private_key !== null ||
+        config.current.aws_bucket !== null ||
+        config.current.aws_region !== null ||
+        config.current.aws_access_key_id !== null ||
+        config.current.aws_access_key_secret !== null
       )
     ) {
       return
@@ -194,6 +229,53 @@ const SettingsPage = () => {
                 }
               </Typography>
             </Typography>
+
+            <Divider />
+
+            <Typography>
+              AWS bucket: {" "}
+              <Typography fontWeight="bold">
+                {
+                  !config.initial ? "loading..." :
+                  config.initial.aws_bucket ?
+                  config.initial.aws_bucket : "unset"
+                }
+              </Typography>
+            </Typography>
+
+            <Typography>
+              AWS Region: {" "}
+              <Typography fontWeight="bold">
+                {
+                  !config.initial ? "loading..." :
+                  config.initial.aws_region ?
+                  config.initial.aws_region : "unset"
+                }
+              </Typography>
+            </Typography>
+
+            <Typography>
+              AWS Access key ID: {" "}
+              <Typography fontWeight="bold">
+                {
+                  !config.initial ? "loading..." :
+                  config.initial.aws_access_key_id ?
+                  config.initial.aws_access_key_id.substr(0,45)+"..." : "unset"
+                }
+              </Typography>
+            </Typography>
+
+            <Typography>
+              AWS Access key Secret: {" "}
+              <Typography fontWeight="bold">
+                {
+                  !config.initial ? "loading..." :
+                  config.initial.aws_access_key_secret ?
+                  config.initial.aws_access_key_secret.substr(0,45)+"..." : "unset"
+                }
+              </Typography>
+            </Typography>
+
           </Stack>
         </Stack>
         <Box paddingTop={4} paddingBottom={2}>
@@ -244,6 +326,50 @@ const SettingsPage = () => {
                   : config.initial ? config.initial.mux_signing_private_key : ""
                 }
               </Textarea>
+              <TextInput
+                label="AWS Bucket"
+                name="aws_bucket"
+                onChange={e => handleChange("aws_bucket", e.target.value)}
+                value={
+                  config.current.aws_bucket !== null ?
+                    config.current.aws_bucket
+                  : config.initial ? config.initial.aws_bucket : ""
+                }
+                required={true}
+              />
+              <TextInput
+                label="AWS Region"
+                name="aws_region"
+                onChange={e => handleChange("aws_region", e.target.value)}
+                value={
+                  config.current.aws_region !== null ?
+                    config.current.aws_region
+                  : config.initial ? config.initial.aws_region : ""
+                }
+                required={true}
+              />
+              <TextInput
+                label="AWS Access Key ID"
+                name="aws_access_key_id"
+                onChange={e => handleChange("aws_access_key_id", e.target.value)}
+                value={
+                  config.current.aws_access_key_id !== null ?
+                    config.current.aws_access_key_id
+                  : config.initial ? config.initial.aws_access_key_id : ""
+                }
+                required={true}
+              />
+              <TextInput
+                label="AWS Access Key Secret"
+                name="aws_access_key_secret"
+                onChange={e => handleChange("aws_access_key_secret", e.target.value)}
+                value={
+                  config.current.aws_access_key_secret !== null ?
+                    config.current.aws_access_key_secret
+                  : config.initial ? config.initial.aws_access_key_secret : ""
+                }
+                required={true}
+              />
               <Box>
                 <Button
                   type="submit"
