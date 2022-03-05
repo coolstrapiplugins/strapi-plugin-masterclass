@@ -88,7 +88,7 @@ module.exports = {
       ).findOne(
         {
           where: {
-            student: user.id,
+            student: {user: user.id},
             course: id
           },
           populate: {
@@ -127,7 +127,7 @@ module.exports = {
     ).findOne(
       {
         where: {
-          student: user.id,
+          student: {user: user.id},
           course: id
         },
         populate: {
@@ -158,7 +158,7 @@ module.exports = {
     ).findOne(
       {
         where: {
-          student: user.id,
+          student: {user: user.id},
           course: id
         },
         populate: {
@@ -235,7 +235,7 @@ module.exports = {
     ).findOne(
       {
         where: {
-          student: user.id,
+          student: {user: user.id},
           course: id
         },
         populate: {
@@ -315,7 +315,7 @@ module.exports = {
     ).findOne(
       {
         where: {
-          student: user.id,
+          student: {user: user.id},
           course: id
         },
         populate: {
@@ -399,17 +399,29 @@ module.exports = {
     if (!user) {
       return ctx.badRequest("There must be an user")
     }
-    const courses = await strapi.entityService.findMany("plugin::masterclass.mc-student-course", {
-      filters: {
-        student: user.id
+
+    const student = await strapi.db.query("plugin::masterclass.mc-student").findOne({
+      where: {
+        user: user.id
       },
       populate: {
-        course: {
-          fields: ["id"]
+        courses: {
+          populate: {
+            course: {
+              select: ["id"]
+            }
+          }
         }
       }
     })
-    ctx.body = { courses }
+
+    let res = { courses: [] }
+
+    if (student) {
+      res = { courses: student.courses }
+    }
+
+    ctx.body = res
   },
   // this handler returns the full information of all the courses purchased by the user
   async getMyLearning(ctx) {
@@ -417,45 +429,56 @@ module.exports = {
     if (!user) {
       return ctx.badRequest("There must be an user")
     }
-    let courses = await strapi.entityService.findMany("plugin::masterclass.mc-student-course", {
-      filters: {
-        student: user.id
+    const student = await strapi.db.query("plugin::masterclass.mc-student").findOne({
+      where: {
+        user: user.id
       },
       populate: {
-        course: {
-          fields: [
-            "id",
-            "duration",
-            "title",
-            "description",
-            "price",
-            "slug"
-          ],
+        courses: {
           populate: {
-            thumbnail: {
-              fields: ["name", "url"]
-            },
-            lectures: {
-              fields: ["title"],
+            course: {
+              select: [
+                "id",
+                "duration",
+                "title",
+                "description",
+                "price",
+                "slug"
+              ],
               populate: {
-                video: {
-                  fields: ["duration"]
+                thumbnail: {
+                  select: ["name", "url"]
+                },
+                lectures: {
+                  select: ["title"],
+                  populate: {
+                    video: {
+                      select: ["duration"]
+                    }
+                  }
+                },
+                category: {
+                  select: ["slug", "title", "id"]
                 }
               }
-            },
-            category: {
-              select: ["slug", "title", "id"]
             }
           }
         }
       }
     })
-    courses = await Promise.all(courses.map(async c => {
-      if (c.category) {
-        c.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(c)
-      }
-      return c
-    }))
-    ctx.body = { courses }
+
+    let res = { courses: [] }
+
+    if (student) {
+      student.courses = await Promise.all(student.courses.map(async c => {
+        if (c.category) {
+          c.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(c)
+        }
+        return c
+      }))
+      res = { courses: student.courses }
+    }
+
+    ctx.body = res
   }
 }
