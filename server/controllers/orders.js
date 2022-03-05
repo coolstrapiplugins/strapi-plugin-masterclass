@@ -62,11 +62,11 @@ module.exports = {
       return ctx.badRequest("User must be authenticated")
     }
     // Get request origin to redirect back after checkout
-    const BASE_URL = ctx.request.headers.origin || 'http://localhost:3000' //
+    const BASE_URL = ctx.request.headers.origin || 'http://localhost:3000'
 
-    const { courses } = ctx.request.body
-    if(!courses || !courses.length) {
-      return ctx.badRequest("No courses received")
+    const { courses, ejercicios } = ctx.request.body
+    if ((!courses || !courses.length) || (!ejercicios || !ejercicios.length)) {
+      return ctx.badRequest("No items received")
     }
 
     const items = []
@@ -82,6 +82,29 @@ module.exports = {
       items.push({
         price: course.price,
         label: course.title
+      })
+    }
+    // Get ejercicios details
+    for (let i = 0; i < ejercicios.length; i++) {
+      const id = ejercicios[i]
+      const ejercicio = await strapi.entityService.findOne("plugin::masterclass.mc-ejercicio", id, {
+        fields: ["title", "price"],
+        populate: {
+          category: {
+            fields: ["title"]
+          }
+        }
+      })
+      if (!ejercicio) {
+        return ctx.badRequest("Course " + id + " not found")
+      }
+      let label = ejercicio.title
+      if (ejercicio.category) {
+        label = `${ejercicio.category.title} - ${ejercicio.title}`
+      }
+      items.push({
+        price: ejercicio.price,
+        label
       })
     }
 
@@ -118,7 +141,8 @@ module.exports = {
         user: user.id,
         confirmed: false,
         checkout_session: session.id,
-        courses
+        courses,
+        ejercicios
       }
     })
 
@@ -150,6 +174,9 @@ module.exports = {
         },
         courses: {
           fields: ["id"]
+        },
+        ejercicios: {
+          fields: ["id"]
         }
       }
     })
@@ -164,8 +191,15 @@ module.exports = {
     if (session.payment_status === "paid") {
       // Sign in user to the courses if the order was not confirmed.
       if (!order.confirmed) {
-        await strapi.service('plugin::masterclass.courses')
-          .signIntoMultipleCourses(user, order.courses)
+        const { courses, ejercicios } = order
+        if (courses.length > 0) {
+          await strapi.service('plugin::masterclass.courses')
+            .signIntoMultipleCourses(user, courses)
+        }
+        if (ejercicios.length > 0) {
+          await strapi.service('plugin::masterclass.ejercicios')
+            .assignEjercicios(user, ejercicios)
+        }
 
         // Mark order as confirmed
         order.confirmed = true
