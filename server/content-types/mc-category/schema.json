@@ -53,6 +53,18 @@
       "relation": "manyToMany",
       "target": "plugin::masterclass.mc-course",
       "inversedBy": "featured_in"
+    },
+    "ejercicios": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "plugin::masterclass.mc-ejercicio",
+      "mappedBy": "category"
+    },
+    "featured_ejercicios": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "plugin::masterclass.mc-ejercicio",
+      "inversedBy": "featured_in"
     }
   }
 }

@@ -1,0 +1,55 @@
+{
+  "kind": "collectionType",
+  "collectionName": "mc_ejercicio",
+  "info": {
+    "singularName": "mc-ejercicio",
+    "pluralName": "mc-ejercicios",
+    "displayName": "Ejercicio",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false,
+    "comment": ""
+  },
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "price": {
+      "type": "decimal"
+    },
+    "thumbnail": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title"
+    },
+    "solucion": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::masterclass.mc-solucion",
+      "mappedBy": "ejercicio"
+    },
+    "category": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::masterclass.mc-category",
+      "inversedBy": "ejercicios"
+    },
+    "featured_in": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "plugin::masterclass.mc-category",
+      "inversedBy": "featured_ejercicios"
+    }
+  }
+}

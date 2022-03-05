@@ -5,6 +5,8 @@ const student = require("./mc-student/schema.json")
 const studentCourse = require("./mc-student-course/schema.json")
 const video = require("./mc-video/schema.json")
 const order = require("./mc-order/schema.json")
+const ejercicio = require("./mc-ejercicio/schema.json")
+const solucion = require("./mc-solucion/schema.json")
 
 module.exports = {
   "mc-category": {schema: category},
@@ -13,5 +15,7 @@ module.exports = {
   "mc-student": {schema: student},
   "mc-video": {schema: video},
   "mc-student-course": {schema: studentCourse},
-  "mc-order": {schema: order}
+  "mc-order": {schema: order},
+  "mc-ejercicio": {schema: ejercicio},
+  "mc-solucion": {schema: solucion}
 }

@@ -30,6 +30,11 @@
       "type": "relation",
       "relation": "oneToMany",
       "target": "plugin::masterclass.mc-course"
+    },
+    "ejercicios": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "plugin::masterclass.mc-ejercicio"
     }
   }
 }
