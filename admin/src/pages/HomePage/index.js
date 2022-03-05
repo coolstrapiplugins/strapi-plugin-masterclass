@@ -10,7 +10,7 @@ import React, { memo, useState, useEffect } from 'react';
 import { Box } from "@strapi/design-system/Box"
 import { Typography } from '@strapi/design-system/Typography'
 import { Tabs, Tab, TabGroup, TabPanels, TabPanel } from '@strapi/design-system/Tabs'
-import { Courses, Lectures } from "../../components/Tabs"
+import { Courses, Lectures, Ejercicios } from "../../components/Tabs"
 
 const HomePage = () => {
   return (
@@ -22,6 +22,7 @@ const HomePage = () => {
         <Tabs>
           <Tab>Courses</Tab>
           <Tab>Lectures</Tab>
+          <Tab>Ejercicios</Tab>
         </Tabs>
         <TabPanels>
           <TabPanel>
@@ -29,6 +30,9 @@ const HomePage = () => {
           </TabPanel>
           <TabPanel>
             <Lectures />
+          </TabPanel>
+          <TabPanel>
+            <Ejercicios />
           </TabPanel>
         </TabPanels>
       </TabGroup>
