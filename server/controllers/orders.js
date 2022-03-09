@@ -173,10 +173,43 @@ module.exports = {
           fields: ["id"]
         },
         courses: {
-          fields: ["id"]
+          fields: [
+            "id",
+            "duration",
+            "title",
+            "description",
+            "long_description",
+            "price",
+            "slug"
+          ],
+          populate: {
+            thumbnail: {
+              fields: ["name", "url"]
+            },
+            lectures: {
+              fields: []
+            },
+            category: {
+              fields: ["slug", "title", "id"]
+            }
+          }
         },
         ejercicios: {
-          fields: ["id"]
+          fields: [
+            "id",
+            "title",
+            "description",
+            "price",
+            "slug"
+          ],
+          populate: {
+            thumbnail: {
+              fields: ["name", "url"]
+            },
+            category: {
+              fields: ["slug", "title", "id"]
+            }
+          }
         }
       }
     })
@@ -189,6 +222,16 @@ module.exports = {
     }
 
     if (session.payment_status === "paid") {
+      order.courses = await Promise.all(order.courses.map(async c => {
+        c.kind = "course"
+        c.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(c)
+        return c
+      }))
+      order.ejercicios = await Promise.all(order.ejercicios.map(async e => {
+        e.kind = "ejercicio"
+        e.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(e)
+        return e
+      }))
       // Sign in user to the courses if the order was not confirmed.
       if (!order.confirmed) {
         const { courses, ejercicios } = order
