@@ -29,6 +29,8 @@ module.exports = {
   },
   isValidAWSConfig: function(config) {
     return (
+      config.aws_bucket            !== "" &&
+      config.aws_region            !== "" &&
       config.aws_access_key_id     !== "" &&
       config.aws_access_key_secret !== ""
     )
