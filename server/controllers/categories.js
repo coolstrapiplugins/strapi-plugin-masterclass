@@ -122,11 +122,21 @@ module.exports = {
       }
       category.courses_count = courses_count
       category.ejercicios_count = ejercicios_count
+      category.courses = category.courses.map(c => {
+        c.kind = "course"
+        return c
+      })
       category.featured_courses = await Promise.all(category.featured_courses.map(async c => {
+        c.kind = "course"
         c.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(c)
         return c
       }))
+      category.ejercicios = category.ejercicios.map(e => {
+        e.kind = "ejercicio"
+        return e
+      })
       category.featured_ejercicios = await Promise.all(category.featured_ejercicios.map(async e => {
+        e.kind = "ejercicio"
         e.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(e)
         return e
       }))
@@ -299,18 +309,22 @@ module.exports = {
       return !category.featured_ejercicios.some(f_e => f_e.id === e.id)
     })
     category.courses = await Promise.all(category.courses.map(async c => {
+      c.kind = "course"
       c.category.slug = await strapi.service('plugin::masterclass.courses').buildAbsoluteSlug(c)
       return c
     }))
     category.featured_courses = await Promise.all(category.featured_courses.map(async c => {
+      c.kind = "course"
       c.category.slug = await strapi.service('plugin::masterclass.courses').buildAbsoluteSlug(c)
       return c
     }))
     category.ejercicios = await Promise.all(category.ejercicios.map(async e => {
+      e.kind = "ejercicio"
       e.category.slug = await strapi.service('plugin::masterclass.courses').buildAbsoluteSlug(e)
       return e
     }))
     category.featured_ejercicios = await Promise.all(category.featured_ejercicios.map(async e => {
+      e.kind = "ejercicio"
       e.category.slug = await strapi.service('plugin::masterclass.courses').buildAbsoluteSlug(e)
       return e
     }))
