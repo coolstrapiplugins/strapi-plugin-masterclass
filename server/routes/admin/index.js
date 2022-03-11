@@ -82,6 +82,22 @@ module.exports = {
       config: {
         policies: [],
       }
+    },
+    {
+      method: 'GET',
+      path: '/paypal',
+      handler: 'admin__paypal.getConfig',
+      config: {
+        policies: [],
+      }
+    },
+    {
+      method: 'POST',
+      path: '/paypal',
+      handler: 'admin__paypal.setConfig',
+      config: {
+        policies: [],
+      }
     }
   ]
 }
