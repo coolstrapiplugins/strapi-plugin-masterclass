@@ -30,6 +30,13 @@
       "type": "relation",
       "relation": "oneToMany",
       "target": "plugin::masterclass.mc-course"
+    },
+    "payment_method": {
+      "type": "enumeration",
+      "enum": [
+        "paypal",
+        "credit_card"
+      ]
     }
   }
 }
