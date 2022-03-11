@@ -20,10 +20,8 @@ const SettingsPage = () => {
   const [config, setConfig] = useState({
     initial: null,
     current: {
-      mux_access_key_id: null,
-      mux_access_key_secret: null,
-      mux_signing_key_id: null,
-      mux_signing_private_key: null
+      paypal_client_id: null,
+      paypal_client_secret: null
     }
   })
   const [sending, setSending] = useState(false)
@@ -150,7 +148,7 @@ const SettingsPage = () => {
                 {
                   !config.initial ? "loading..." :
                   config.initial.paypal_client_id ?
-                  consig.initial.paypal_client_id.substr(0,45)+"..." : "unset"
+                  config.initial.paypal_client_id.substr(0,45)+"..." : "unset"
                 }
               </Typography>
             </Typography>
