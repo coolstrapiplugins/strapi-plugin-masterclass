@@ -35,6 +35,13 @@
       "type": "relation",
       "relation": "oneToMany",
       "target": "plugin::masterclass.mc-ejercicio"
+    },
+    "payment_method": {
+      "type": "enumeration",
+      "enum": [
+        "paypal",
+        "credit_card"
+      ]
     }
   }
 }

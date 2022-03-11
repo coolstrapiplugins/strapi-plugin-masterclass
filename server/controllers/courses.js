@@ -399,6 +399,7 @@ module.exports = {
     if (!user) {
       return ctx.badRequest("There must be an user")
     }
+
     const student = await strapi.db.query("plugin::masterclass.mc-student").findOne({
       where: {
         user: user.id
@@ -416,6 +417,7 @@ module.exports = {
         }
       }
     })
+
     let res = student
     if (!student) {
       res = {
@@ -423,6 +425,7 @@ module.exports = {
         ejercicios: []
       }
     }
+
     ctx.body = res
   },
   // this handler returns the full information of all the courses purchased by the user
@@ -485,6 +488,7 @@ module.exports = {
         }
       }
     })
+
     let res = student
     if (!student) {
       res = {
@@ -504,6 +508,7 @@ module.exports = {
       }
       return e
     }))
+
     ctx.body = res
   }
 }

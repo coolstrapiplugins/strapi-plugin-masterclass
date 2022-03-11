@@ -180,7 +180,7 @@ const SettingsPage = () => {
   return (
     <Box background="neutral100" padding={8}>
       <Box paddingBottom={3} paddingTop={3}>
-        <Typography variant="alpha" fontWeight="bold">Ratings settings</Typography>
+        <Typography variant="alpha" fontWeight="bold">Video upload settings</Typography>
       </Box>
       <Box background="neutral0" padding={6}>
         <Stack size={4}>
