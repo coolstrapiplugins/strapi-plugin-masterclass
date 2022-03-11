@@ -6,6 +6,8 @@
 
 const pluginId = require("../pluginId")
 
+const STORE_KEY = "paypal_config"
+
 module.exports = {
   paypal_auth: null,
   DEFAULT_CONFIG: {
@@ -29,7 +31,7 @@ module.exports = {
   },
   getConfig: async function() {
     const pluginStore = this.getStore()
-    const config = await pluginStore.get({ key: "config"})
+    const config = await pluginStore.get({ key: STORE_KEY})
     if (!config) {
       return this.DEFAULT_CONFIG
     }
@@ -44,7 +46,7 @@ module.exports = {
     }
     const newConfig = {...config, ...newConfigInput}
     const pluginStore = this.getStore()
-    pluginStore.set({ key: "config", value: newConfig})
+    pluginStore.set({ key: STORE_KEY, value: newConfig})
     this.setPaypalAuth(newConfig)
   },
   getPaypalAuth: async function() {
