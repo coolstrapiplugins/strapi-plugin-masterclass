@@ -2,6 +2,53 @@
 
 const axios = require("axios")
 
+const orderQuery = {
+  populate: {
+    user: {
+      fields: ["id"]
+    },
+    courses: {
+      fields: [
+        "id",
+        "duration",
+        "title",
+        "description",
+        "long_description",
+        "price",
+        "slug"
+      ],
+      populate: {
+        thumbnail: {
+          fields: ["name", "url"]
+        },
+        lectures: {
+          fields: []
+        },
+        category: {
+          fields: ["slug", "title", "id"]
+        }
+      }
+    },
+    ejercicios: {
+      fields: [
+        "id",
+        "title",
+        "description",
+        "price",
+        "slug"
+      ],
+      populate: {
+        thumbnail: {
+          fields: ["name", "url"]
+        },
+        category: {
+          fields: ["slug", "title", "id"]
+        }
+      }
+    }
+  }
+}
+
 /**
  * Given a dollar amount number, convert it to it's value in cents
  * @param number 
@@ -69,7 +116,7 @@ module.exports = {
     const BASE_URL = ctx.request.headers.origin || 'http://localhost:3000'
 
     const { courses, ejercicios, method } = ctx.request.body
-    if ((!courses || !courses.length) || (!ejercicios || !ejercicios.length)) {
+    if ((!courses || !courses.length) && (!ejercicios || !ejercicios.length)) {
       return ctx.badRequest("No items received")
     }
 
@@ -115,8 +162,10 @@ module.exports = {
     let checkout_session
     let total = 0
     let data
+    let payment_method
 
     if (method === "cc") {
+      payment_method = "credit_card"
       // Pay with credit card: create order with Stripe
       const stripe = await strapi.service("plugin::masterclass.stripe").getStripeClient()
       if (!stripe) {
@@ -144,6 +193,7 @@ module.exports = {
       })
       checkout_session = session.id
     } else {
+      payment_method = "paypal"
       // Pay with PayPal: create order with PayPal
       const paypalAuth = await strapi.service("plugin::masterclass.paypal").getPaypalAuth()
       const config = await strapi.service("plugin::masterclass.paypal").getConfig()
@@ -177,13 +227,14 @@ module.exports = {
 
       const url = `${PAYPAL_API}/v2/checkout/orders`
 
+      const user = `${paypalAuth.username}:${paypalAuth.password}`
+
       try {
-        const result = await axios.post(url, {
-          auth: paypalAuth,
+        const result = await axios.post(url, reqBody, {
           headers: {
-            "Content-Type": "application/json"
-          },
-          body: reqBody
+            "Content-Type": "application/json",
+            "Authorization": `Basic ${Buffer.from(user).toString("base64")}`
+          }
         })
         data = result.data
         checkout_session = data.id
@@ -199,6 +250,7 @@ module.exports = {
         total,
         user: user.id,
         confirmed: false,
+        payment_method,
         courses,
         ejercicios,
         checkout_session
@@ -213,64 +265,10 @@ module.exports = {
       return ctx.badRequest("User must be authenticated")
     }
     const { checkout_session } = ctx.request.body
-    let session
-    
-    const stripe = await strapi.service("plugin::masterclass.stripe").getStripeClient()
-    if (!stripe) {
-      return ctx.badRequest("Stripe Private key is unset")
-    }
-    try {
-      session = await stripe.checkout.sessions.retrieve(checkout_session)
-    } catch(err) {
-      return ctx.notFound("Checkout ID " + checkout_session + " not found")
-    }
 
     const order = await strapi.db.query("plugin::masterclass.mc-order").findOne({
       where: { checkout_session },
-      populate: {
-        user: {
-          fields: ["id"]
-        },
-        courses: {
-          fields: [
-            "id",
-            "duration",
-            "title",
-            "description",
-            "long_description",
-            "price",
-            "slug"
-          ],
-          populate: {
-            thumbnail: {
-              fields: ["name", "url"]
-            },
-            lectures: {
-              fields: []
-            },
-            category: {
-              fields: ["slug", "title", "id"]
-            }
-          }
-        },
-        ejercicios: {
-          fields: [
-            "id",
-            "title",
-            "description",
-            "price",
-            "slug"
-          ],
-          populate: {
-            thumbnail: {
-              fields: ["name", "url"]
-            },
-            category: {
-              fields: ["slug", "title", "id"]
-            }
-          }
-        }
-      }
+      ...orderQuery
     })
 
     if (!order) {
@@ -280,7 +278,27 @@ module.exports = {
       return ctx.forbidden("This order does not belong to this user")
     }
 
-    if (session.payment_status === "paid") {
+    if (order.confirmed) {
+      ctx.body = { order }
+      return
+    }
+
+    if (order.payment_method === "credit_card") {
+      let session
+
+      const stripe = await strapi.service("plugin::masterclass.stripe").getStripeClient()
+      if (!stripe) {
+        return ctx.badRequest("Stripe Private key is unset")
+      }
+      try {
+        session = await stripe.checkout.sessions.retrieve(checkout_session)
+      } catch(err) {
+        return ctx.notFound("Checkout ID " + checkout_session + " not found")
+      }
+      if (session.payment_status !== "paid") {
+        return ctx.badRequest("Order not verified")
+      }
+
       order.courses = await Promise.all(order.courses.map(async c => {
         c.kind = "course"
         c.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(c)
@@ -291,104 +309,60 @@ module.exports = {
         e.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(e)
         return e
       }))
-      // Sign in user to the courses if the order was not confirmed.
-      if (!order.confirmed) {
-        const { courses, ejercicios } = order
-        if (courses.length > 0) {
-          await strapi.service('plugin::masterclass.courses')
-            .signIntoMultipleCourses(user, courses)
-        }
-        if (ejercicios.length > 0) {
-          await strapi.service('plugin::masterclass.ejercicios')
-            .assignEjercicios(user, ejercicios)
-        }
+    } else {
+      // Capture paypal
+      const paypalAuth = await strapi.service("plugin::masterclass.paypal").getPaypalAuth()
+      const config = await strapi.service("plugin::masterclass.paypal").getConfig()
+      if (!paypalAuth) {
+        console.log("PayPal is not properly configured")
+        console.log({config})
+        return ctx.badRequest("PayPal is not properly configured")
+      }
 
-        // Mark order as confirmed
-        order.confirmed = true
-        await strapi.entityService.update("plugin::masterclass.mc-order", order.id, {
-          data: {
-            confirmed: true
+      let data
+
+      const url = `${PAYPAL_API}/v2/checkout/orders/${checkout_session}/capture`
+      try {
+        const user = `${paypalAuth.username}:${paypalAuth.password}`
+        const result = await axios.post(url, {}, {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Basic ${Buffer.from(user).toString("base64")}`
           }
         })
+        data = result.data
+      } catch(err) {
+        if (err.response && err.response.data) {
+          console.log(JSON.stringify(err.response.data))
+        } else {
+          console.log(err.toJSON())
+        }
+        return ctx.internalServerError("Error while confirming paypal order")
       }
-      ctx.body = { order }
-    } else {
-      return ctx.badRequest("Order not verified")
-    }
-  },
-  async executePayment(ctx) {
-    const { user } = ctx.state
-    if (!user) {
-      return ctx.badRequest("User must be authenticated")
-    }
-    const { token } = ctx.request.body
-    if (!token) {
-      return ctx.badRequest("Empty token")
+
+      if (data.status !== "COMPLETED") {
+        return ctx.badRequest("Order not verified")
+      }
     }
 
-    const order = await strapi.db.query("plugin::masterclass.mc-order").findOne({
-      where: { checkout_session: token },
-      populate: {
-        user: {
-          fields: ["id"]
-        },
-        courses: {
-          fields: ["id"]
-        }
+    // Sign in user to the courses and assign ejercicios purchased.
+    const { courses, ejercicios } = order
+    if (courses.length > 0) {
+      await strapi.service('plugin::masterclass.courses')
+        .signIntoMultipleCourses(user, courses)
+    }
+    if (ejercicios.length > 0) {
+      await strapi.service('plugin::masterclass.ejercicios')
+        .assignEjercicios(user, ejercicios)
+    }
+
+    // Mark order as confirmed
+    await strapi.entityService.update("plugin::masterclass.mc-order", order.id, {
+      data: {
+        confirmed: true
       }
     })
-
-    if (!order) {
-      return ctx.notFound("Order not found")
-    }
-
-    if (order.user.id !== user.id) {
-      return ctx.forbidden("This order does not belong to this user")
-    }
-
-    if (order.confirmed) {
-      ctx.body = { order }
-      return
-    }
-
-    const paypalAuth = await strapi.service("plugin::masterclass.paypal").getPaypalAuth()
-    const config = await strapi.service("plugin::masterclass.paypal").getConfig()
-    if (!paypalAuth) {
-      console.log("PayPal is not properly configured")
-      console.log({config})
-      return ctx.badRequest("PayPal is not properly configured")
-    }
-
-    let data
-
-    const url = `${PAYPAL_API}/v2/checkout/orders/${token}/capture`
-    try {
-      const result = await axios.post(url, {
-        auth: paypalAuth,
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: {}
-      })
-      data = result.data
-    } catch(err) {
-      console.log(err)
-      return ctx.internalServerError("Error while confirming paypal order")
-    }
-
-    if (data.status === "COMPLETED") {
-      await strapi.service('plugin::masterclass.courses')
-        .signIntoMultipleCourses(user, order.courses)
-
-      // Mark order as confirmed
-      order.confirmed = true
-      await strapi.entityService.update("plugin::masterclass.mc-order", order.id, {
-        data: {
-          confirmed: true
-        }
-      })
-    }
-
-    ctx.body = { order }    
+    order.confirmed = true
+    ctx.body = { order }
   }
 }

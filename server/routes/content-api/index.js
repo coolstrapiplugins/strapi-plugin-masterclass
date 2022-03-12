@@ -93,16 +93,8 @@ module.exports = {
     },
     {
       method: 'PUT',
-      path: '/orders',
+      path: '/orders/confirm',
       handler: 'orders.confirm',
-      config: {
-        policies: [],
-      }
-    },
-    {
-      method: 'PUT',
-      path: '/orders/paypal',
-      handler: 'orders.executePayment',
       config: {
         policies: [],
       }
