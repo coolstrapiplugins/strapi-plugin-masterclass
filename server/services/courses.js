@@ -21,20 +21,34 @@ module.exports = ({ strapi }) => ({
    */
   async signIntoMultipleCourses(user, courses) {
     let student = await strapi.db.query("plugin::masterclass.mc-student").findOne({
-      where: {user: user.id}
+      where: {user: user.id},
+      populate: {
+        courses: {
+          select: ["id"]
+        }
+      }
     })
     if (!student) {
       student = await strapi.entityService.create("plugin::masterclass.mc-student", {
         data: {
           user: user.id
+        },
+        populate: {
+          courses: {
+            select: ["id"]
+          }
         }
       })
     }
-    return await Promise.all(courses.map(course => {
+    const newCourses = courses.filter(c => {
+      const alreadySignedIn = student.courses.some(({id}) => id === c.id)
+      return !alreadySignedIn
+    })
+    return await Promise.all(newCourses.map(c => {
       return strapi.entityService.create("plugin::masterclass.mc-student-course", {
         data: {
           student: student.id,
-          course: course.id
+          course: c.id
         }
       })
     }))
