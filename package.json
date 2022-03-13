@@ -1,10 +1,20 @@
 {
-  "name": "masterclass",
-  "version": "0.0.0",
-  "description": "Learning management system",
+  "name": "strapi-plugin-masterclass",
+  "version": "2.0.1",
+  "description": "Learning management system plugin for Strapi V4",
+  "keywords": [
+    "strapi",
+    "strapi-plugin",
+    "LMS",
+    "learning-management-system",
+    "CMS",
+    "aws-sdk",
+    "mux"
+  ],
   "strapi": {
+    "displayName": "Masterclass",
     "name": "masterclass",
-    "description": "Learning management system",
+    "description": "Learning management system plugin for Strapi V4",
     "kind": "plugin"
   },
   "dependencies": {
@@ -17,16 +27,19 @@
     "uuid": "^8.3.2"
   },
   "author": {
-    "name": "Luis G. Villegas"
+    "name": "Luis G. Villegas",
+    "email": "luisguveal@gmail.com"
   },
   "maintainers": [
     {
-      "name": "Luis G. Villegas"
+      "name": "Luis G. Villegas",
+      "email": "luisguveal@gmail.com"
     }
   ],
   "engines": {
     "node": ">=12.x. <=16.x.x",
     "npm": ">=6.0.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "repository": "https://github.com/luisguve/strapi-plugin-masterclass"
 }
