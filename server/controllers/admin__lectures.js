@@ -1,7 +1,7 @@
 'use strict';
 
 const fs = require('fs');
-const request = require('request-promise-native');
+const request = require('request');
 const uuid = require('uuid');
 
 module.exports = {
