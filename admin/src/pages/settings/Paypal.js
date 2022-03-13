@@ -26,7 +26,7 @@ const SettingsPage = () => {
   })
   const [sending, setSending] = useState(false)
   const [status, setStatus] = useState(null)
-  const url = `masterclass/paypal`
+  const url = `/masterclass/paypal`
   useEffect(() => {
     const fetchConfig = async () => {
       try {

@@ -33,7 +33,7 @@ const SettingsPage = () => {
   })
   const [sending, setSending] = useState(false)
   const [status, setStatus] = useState(null)
-  const url = `masterclass/config`
+  const url = `/masterclass/config`
   useEffect(() => {
     const fetchConfig = async () => {
       try {

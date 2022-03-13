@@ -20,7 +20,7 @@ const SettingsPage = () => {
   const [pk, setPk] = useState({})
   const [sending, setSending] = useState(false)
   const [status, setStatus] = useState(null)
-  const url = `masterclass/stripe-pk`
+  const url = `/masterclass/stripe-pk`
   useEffect(() => {
     const fetchPk = async () => {
       try {
