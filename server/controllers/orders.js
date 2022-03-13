@@ -71,6 +71,9 @@ module.exports = {
         courses: {
           fields: ["id", "title", "slug"]
         }
+      },
+      sort: {
+        id: "desc"
       }
     })
     ctx.body = {
@@ -321,6 +324,7 @@ module.exports = {
 
       let data
 
+      let orderCaptured = false
       const url = `${PAYPAL_API}/v2/checkout/orders/${checkout_session}/capture`
       try {
         const user = `${paypalAuth.username}:${paypalAuth.password}`
@@ -330,18 +334,23 @@ module.exports = {
             "Authorization": `Basic ${Buffer.from(user).toString("base64")}`
           }
         })
-        data = result.data
+        orderCaptured = result.data.status === "COMPLETED"
       } catch(err) {
         if (err.response && err.response.data) {
-          console.log(JSON.stringify(err.response.data))
+          const { issue } = err.response.data.details[0]
+          if (issue === "ORDER_ALREADY_CAPTURED") {
+            orderCaptured = true
+          } else {
+            console.log("Error capturing payment:")
+            console.log(JSON.stringify(err.response.data))
+          }
         } else {
-          console.log(err.toJSON())
+          console.log("Error capturing payment:")
+          console.log(JSON.stringify(err.toJSON()))
         }
-        return ctx.internalServerError("Error while confirming paypal order")
       }
-
-      if (data.status !== "COMPLETED") {
-        return ctx.badRequest("Order not verified")
+      if (!orderCaptured) {
+        return ctx.badRequest("Unable to verify payment")
       }
     }
 
