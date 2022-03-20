@@ -496,13 +496,15 @@ module.exports = {
         ejercicios: []
       }
     }
-    res.courses = await Promise.all(res.courses.map(async c => {
+    res.courses = await Promise.all(res.courses.map(async ({course: c}) => {
+      c.kind = "course"
       if (c.category) {
         c.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(c)
       }
       return c
     }))
     res.ejercicios = await Promise.all(res.ejercicios.map(async e => {
+      e.kind = "ejercicio"
       if (e.category) {
         e.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(e)
       }
