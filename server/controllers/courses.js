@@ -206,7 +206,7 @@ module.exports = {
     let baseOptions = {
       keyId: mux_signing_key_id,
       keySecret: mux_signing_private_key,
-      expiration: "2h"
+      expiration: "6h"
     };
 
     const playbackID = currentLecture.video.video_id
@@ -291,7 +291,7 @@ module.exports = {
     let baseOptions = {
       keyId: mux_signing_key_id,
       keySecret: mux_signing_private_key,
-      expiration: "2h"
+      expiration: "6h"
     };
 
     const playbackID = newCurrentLecture.video.video_id
