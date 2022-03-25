@@ -4,26 +4,28 @@
  *
  */
 
-import React, { memo, useState, useEffect } from 'react';
+import React, { memo, useState, useEffect } from 'react'
 // import PropTypes from 'prop-types';
 import { Box } from "@strapi/design-system/Box"
+import { Loader } from '@strapi/design-system/Loader';
 import { TextInput } from "@strapi/design-system/TextInput"
 import { Textarea } from "@strapi/design-system/Textarea"
 import { NumberInput } from "@strapi/design-system/NumberInput"
 import { Stack } from "@strapi/design-system/Stack"
 import { Typography } from '@strapi/design-system/Typography'
 import { Button } from '@strapi/design-system/Button'
-import { Status } from '@strapi/design-system/Status';
+import { Status } from '@strapi/design-system/Status'
 import {
   ModalLayout,
   ModalHeader,
   ModalFooter,
   ModalBody
-} from '@strapi/design-system/ModalLayout';
+} from '@strapi/design-system/ModalLayout'
 
-import pluginId from '../../../pluginId';
-import axios from '../../../utils/axiosInstance';
+import pluginId from '../../../pluginId'
+import axios from '../../../utils/axiosInstance'
 import CoursesContainer from "./CoursesContainer"
+import EditCourseModal from "./EditCourseModal"
 
 const Courses = () => {
   const [courses, setCourses] = useState(null);
@@ -64,7 +66,7 @@ const Courses = () => {
           </Box>
           {
             !courses ?
-              <Typography variant="beta">Loading courses...</Typography>
+              <Loader>Loading courses...</Loader>
             : <CoursesContainer data={courses} />
           }
         </Box>
@@ -79,7 +81,15 @@ const Courses = () => {
       </Stack>
       {
         modalOpen && (
-          <CreateCourseModal addCourse={handleAddCourse} close={() => setModalOpen(false)} />
+          <EditCourseModal
+            data={null}
+            closeAfterSubmit
+            httpMethod="post"
+            update={handleAddCourse}
+            modalHeaderText="Create course"
+            submitUrl="/masterclass/courses"
+            close={() => setModalOpen(false)}
+          />
         )
       }
     </>
@@ -87,98 +97,3 @@ const Courses = () => {
 };
 
 export default memo(Courses);
-
-const CreateCourseModal = ({addCourse, close}) => {
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [slug, setSlug] = useState("")
-  const [price, setPrice] = useState(29.99)
-  const [long_description, setLongDescription] = useState("")
-  const [sending, setSending] = useState(false)
-  const [status, setStatus] = useState(null)
-
-  const handleTitle = e => {
-    const newValue = e.target.value
-    setTitle(newValue)
-    setSlug(newValue.replaceAll(" ", "-").toLowerCase())
-  }
-
-  const handleSubmit = async () => {
-    const url = "/masterclass/courses"
-    try {
-      setStatus(null)
-      setSending(true)
-      const { data } = await axios.post(url, {title, description, slug, price, long_description})
-      addCourse(data.course)
-      close()
-    } catch(err) {
-      setSending(false)
-      console.log(err)
-      setStatus({msg: "Could not create course. Please check console", variant: "danger"})
-    }
-  }
-  return (
-    <ModalLayout onClose={close} labelledBy="create-modal-title">
-      <ModalHeader>
-        <Typography fontWeight="bold" textColor="neutral800" as="h2" id="create-modal-title">
-          Create course
-        </Typography>
-      </ModalHeader>
-      <ModalBody>
-        <Stack spacing={2}>
-          <TextInput
-            placeholder="Course title"
-            label="Title"
-            name="title"
-            error={(title && title.length < 5) ? 'Title is too short' : undefined}
-            onChange={handleTitle}
-            value={title}
-          />
-          <TextInput
-            placeholder="Course slug"
-            label="Slug"
-            name="slug"
-            disabled
-            value={slug}
-          />
-          <NumberInput
-            label="Price"
-            name="price"
-            onValueChange={setPrice}
-            value={price}
-          />
-          <Textarea
-            placeholder="Describe your course in few lines"
-            hint="Describe your course in few lines"
-            label="Description"
-            name="description"
-            error={(description && description.length < 5) ? 'Content is too short' : undefined}
-            onChange={e => setDescription(e.target.value)}
-          >{description}</Textarea>
-          <Textarea
-            placeholder="Elaborate more on what this course offers"
-            hint="Elaborate more on what this course offers"
-            label="Long description"
-            name="long_description"
-            error={(long_description && long_description.length < 5) ? 'Content is too short' : undefined}
-            onChange={e => setLongDescription(e.target.value)}
-          >{long_description}</Textarea>
-          <Box>
-            <Button loading={sending} onClick={handleSubmit}>Create</Button>
-          </Box>
-          {
-            status &&
-            <Status variant={status.variant}>
-              <Typography>{status.msg}</Typography>
-            </Status>
-          }
-        </Stack>
-      </ModalBody>
-      <ModalFooter
-        startActions={<></>}
-        endActions={<Button variant="secondary" onClick={close}>Back</Button>}
-      />
-    </ModalLayout>
-  )
-}
-
