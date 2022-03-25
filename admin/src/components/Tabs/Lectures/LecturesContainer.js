@@ -88,10 +88,10 @@ const LectureRow = ({ data }) => {
     titleSummary += "..."
   }
   let courseTitleSummary = "null"
-  if (lectureData.courses) {
+  if (lectureData.courses.length > 0) {
     courseTitleSummary = lectureData.courses[0].title
-    if (courseTitleSummary > 25) {
-      courseTitleSummary = courseTitleSummary.slice(0, 25)
+    if (courseTitleSummary.length > 15) {
+      courseTitleSummary = courseTitleSummary.slice(0, 15)
       courseTitleSummary += "..."
     }
     if (lectureData.courses.length > 1) {
