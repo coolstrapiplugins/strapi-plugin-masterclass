@@ -87,80 +87,24 @@ module.exports = {
     }
   },
   async create(ctx) {
-    // ctx.request.body -> { title, slug, price, description, long_description }
-    const course = await strapi.entityService.create("plugin::masterclass.mc-course", {
-      data: ctx.request.body,
-      populate: {
-        lectures: {
-          fields: ["id","title"]
-        },
-        category: {
-          fields: ["id","slug","title"]
-        },
-        featured_in: {
-          fields: ["id","slug","title"]
-        },
-        students: {
-          fields: []
-        }
-      }
+
+    const course = await strapi.service("plugin::masterclass.courses").storeCourse({
+      body: ctx.request.body,
+      action: "create",
+      id: null
     })
+
     ctx.body = { course }
   },
   async update(ctx) {
     const { id } = ctx.params
-    // ctx.request.body
-    /* ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
-      {
-        title,
-        slug,
-        price,
-        description,
-        long_description,
-        lectures,
-        category,
-        featured_in
-      }
-    */
-    const { lectures } = ctx.request.body
 
-    const storedLectures = await strapi.entityService.findMany("plugin::masterclass.mc-lecture", {
-      filters: {
-        id: lectures
-      },
-      populate: {
-        video: {
-          fields: ["duration"]
-        }
-      }
+    const course = await strapi.service("plugin::masterclass.courses").storeCourse({
+      body: ctx.request.body,
+      action: "update",
+      id
     })
-    const duration = storedLectures.reduce((totalDuration, lecture) => {
-      if (lecture.video) {
-        totalDuration += lecture.video.duration
-      }
-      return totalDuration
-    }, 0)
-    const course = await strapi.entityService.update("plugin::masterclass.mc-course", id, {
-      data: {
-        ...ctx.request.body,
-        lectures_order: lectures,
-        duration
-      },
-      populate: {
-        lectures: {
-          fields: ["id","title"]
-        },
-        category: {
-          fields: ["id","slug","title"]
-        },
-        featured_in: {
-          fields: ["id","slug","title"]
-        },
-        students: {
-          fields: []
-        }
-      }
-    })
+
     ctx.body = { course }
   }
 }

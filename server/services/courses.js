@@ -88,5 +88,74 @@ module.exports = ({ strapi }) => ({
     }
 
     return lecturesOrdered
+  },
+  async calculateCourseDuration(lectures) {
+    const storedLectures = await strapi.entityService.findMany("plugin::masterclass.mc-lecture", {
+      filters: {
+        id: lectures
+      },
+      populate: {
+        video: {
+          fields: ["duration"]
+        }
+      }
+    })
+    return storedLectures.reduce((totalDuration, lecture) => {
+      if (lecture.video) {
+        totalDuration += lecture.video.duration
+      }
+      return totalDuration
+    }, 0)
+  },
+  /**
+  * Create or update course
+  */
+  async storeCourse({body, action, id}) {
+
+    /** body:
+      {
+        title,
+        slug,
+        price,
+        description,
+        long_description,
+        lectures,
+        category,
+        featured_in
+      }
+    */
+
+    const { lectures } = body
+    const duration = await this.calculateCourseDuration(lectures)
+
+    const query = {
+      data: {
+        ...body,
+        lectures_order: lectures,
+        duration
+      },
+      populate: {
+        lectures: {
+          fields: ["id","title"]
+        },
+        category: {
+          fields: ["id","slug","title"]
+        },
+        featured_in: {
+          fields: ["id","slug","title"]
+        },
+        students: {
+          fields: []
+        }
+      }
+    }
+
+    let params = [query]
+
+    if (id != null) {
+      params = [id, query]
+    }
+
+    return strapi.entityService[action]("plugin::masterclass.mc-course", params[0], params[1])
   }
 })
