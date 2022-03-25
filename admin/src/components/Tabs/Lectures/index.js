@@ -9,6 +9,7 @@ import React, { memo, useState, useEffect } from 'react';
 import { Box } from "@strapi/design-system/Box"
 import { Stack } from "@strapi/design-system/Stack"
 import { Typography } from '@strapi/design-system/Typography'
+import { Loader } from '@strapi/design-system/Loader';
 import { Button } from '@strapi/design-system/Button'
 import { Status } from '@strapi/design-system/Status';
 import {
@@ -101,7 +102,7 @@ const Courses = () => {
         <Box paddingTop={4}>
           {
             !data ?
-              <Typography variant="beta">Loading lectures...</Typography>
+              <Loader>Loading lectures...</Loader>
             : <LecturesContainer data={data} />
           }
         </Box>

@@ -7,6 +7,7 @@
 import React, { memo, useState, useEffect } from 'react';
 // import PropTypes from 'prop-types';
 import { Box } from "@strapi/design-system/Box"
+import { Loader } from '@strapi/design-system/Loader';
 import { Stack } from "@strapi/design-system/Stack"
 import { Typography } from '@strapi/design-system/Typography'
 import { Button } from '@strapi/design-system/Button'
@@ -57,7 +58,7 @@ const Courses = () => {
           </Box>
           {
             !data ?
-              <Typography variant="beta">Cargando ejercicios...</Typography>
+              <Loader>Cargando ejercicios...</Loader>
             : <EjerciciosContainer data={data} />
           }
         </Stack>
