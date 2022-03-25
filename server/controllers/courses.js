@@ -27,6 +27,11 @@ module.exports = {
       if (c.category) {
         c.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(c)
       }
+
+      const lecturesOrdered = strapi.service("plugin::masterclass.courses").orderLectures(c)
+
+      c.lectures = lecturesOrdered
+
       return c
     }))
     return { courses }
@@ -61,9 +66,15 @@ module.exports = {
         }
       }
     })
-    if (course && course.category) {
-      course.category.slug =
-      await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(course)
+    if (course) {
+      if (course.category) {
+        course.category.slug =
+        await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(course)
+      }
+
+      const lecturesOrdered = strapi.service("plugin::masterclass.courses").orderLectures(course)
+
+      course.lectures = lecturesOrdered
     }
     return course
   },
@@ -190,6 +201,15 @@ module.exports = {
     if (!student) {
       return ctx.badRequest("No access to this course")
     }
+
+    const lecturesOrdered = strapi.service("plugin::masterclass.courses").orderLectures(course)
+
+    course.lectures = lecturesOrdered
+
+    if (!(course.lectures && course.lectures.length)) {
+      return ctx.badRequest("This course does not have any lecture")
+    }
+
     const currentLecture = student.current_lecture || student.course.lectures[0]
 
     const config = await strapi.service('plugin::masterclass.upload').getConfig()
@@ -338,6 +358,16 @@ module.exports = {
     if (!student) {
       return ctx.badRequest("No access to this course")
     }
+
+    const lecturesOrdered =
+      strapi.service("plugin::masterclass.courses").orderLectures(student.course)
+
+    student.course.lectures = lecturesOrdered
+
+    if (!(student.course.lectures && student.course.lectures.length)) {
+      return ctx.badRequest("This course does not have any lectures")
+    }
+
     const currentLectureIndex = student.course.lectures.findIndex(
       l => l.id.toString() === lecture
     )
@@ -501,6 +531,10 @@ module.exports = {
       if (c.category) {
         c.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(c)
       }
+
+      const lecturesOrdered = strapi.service("plugin::masterclass.courses").orderLectures(c)
+
+      c.lectures = lecturesOrdered
       return c
     }))
     res.ejercicios = await Promise.all(res.ejercicios.map(async e => {

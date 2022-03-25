@@ -73,5 +73,20 @@ module.exports = ({ strapi }) => ({
     } while (category.parent_category !== null)
 
     return slugs.join("/")
+  },
+  orderLectures(course) {
+
+    let lecturesOrdered = course.lectures
+    if (course.lectures_order && course.lectures_order.length > 0) {
+      lecturesOrdered = []
+      course.lectures_order.map(lectureID => {
+        const lecture = course.lectures.find(({id}) => id === lectureID)
+        if (lecture) {
+          lecturesOrdered.push(lecture)
+        }
+      })
+    }
+
+    return lecturesOrdered
   }
 })
