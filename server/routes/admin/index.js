@@ -13,8 +13,16 @@ module.exports = {
     },
     {
       method: 'POST',
-      path: '/upload',
-      handler: 'admin__lectures.upload',
+      path: '/courses',
+      handler: 'admin__courses.create',
+      config: {
+        policies: [],
+      }
+    },
+    {
+      method: 'PUT',
+      path: '/courses/:id',
+      handler: 'admin__courses.update',
       config: {
         policies: [],
       }
@@ -30,7 +38,7 @@ module.exports = {
     {
       method: 'POST',
       path: '/get-video-list',
-      handler: 'admin__upload.getVideoList',
+      handler: 'admin__lectures.getVideoList',
       config: {
         policies: [],
       }
@@ -47,6 +55,46 @@ module.exports = {
       method: 'GET',
       path: '/lectures',
       handler: 'admin__lectures.find',
+      config: {
+        policies: [],
+      }
+    },
+    {
+      method: 'PUT',
+      path: '/lectures/:id',
+      handler: 'admin__lectures.update',
+      config: {
+        policies: [],
+      }
+    },
+    {
+      method: 'GET',
+      path: '/list-categories',
+      handler: 'admin__categories.listCategories',
+      config: {
+        policies: [],
+      }
+    },
+    {
+      method: 'GET',
+      path: '/list-videos',
+      handler: 'admin__videos.find',
+      config: {
+        policies: [],
+      }
+    },
+    {
+      method: 'GET',
+      path: '/list-courses',
+      handler: 'admin__courses.listCourses',
+      config: {
+        policies: [],
+      }
+    },
+    {
+      method: 'GET',
+      path: '/list-lectures',
+      handler: 'admin__lectures.listLectures',
       config: {
         policies: [],
       }
