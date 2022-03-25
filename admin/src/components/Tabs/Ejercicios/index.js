@@ -49,9 +49,9 @@ const Courses = () => {
   }, [])
 
   return (
-    <Stack size={4}>
+    <Stack spacing={4}>
       <Box background="neutral0" padding={4}>
-        <Stack size={4}>
+        <Stack spacing={4}>
           <Box>
             <Button onClick={() => setOpenCreateModal(true)}>Nuevo ejercicio</Button>
           </Box>

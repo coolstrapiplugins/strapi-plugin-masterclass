@@ -36,7 +36,7 @@ const EjerciciosContainer = ({data}) => {
         (!data.ejercicios || !data.ejercicios.length) ?
           <Typography variant="beta">Todavía no hay ejercicios</Typography>
         : ejercicios && (
-          <Stack size={2}>
+          <Stack spacing={2}>
             <Typography variant="beta">
               {data.ejercicios.length} {data.ejercicios.length>1? "ejercicios":"ejercicio"}
             </Typography>
@@ -113,7 +113,7 @@ const EjercicioModal = ({data, close}) => {
         </Typography>
       </ModalHeader>
       <ModalBody>
-        <Stack size={2}>
+        <Stack spacing={2}>
           <Typography>
             <Typography fontWeight="bold">
               ID Ejercicio: {" "}
