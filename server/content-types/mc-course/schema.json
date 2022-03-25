@@ -62,6 +62,9 @@
       "relation": "manyToMany",
       "target": "plugin::masterclass.mc-lecture",
       "inversedBy": "courses"
+    },
+    "lectures_order": {
+      "type": "json"
     }
   }
 }
