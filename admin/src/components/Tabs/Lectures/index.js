@@ -25,7 +25,8 @@ import CreateLectureModal from "./CreateLectureModal"
 
 const Courses = () => {
   const [data, setData] = useState(null);
-  const [error, setError] = useState("")
+  const [status, setStatus] = useState(null)
+  const [loadingLectures, setLoadingLectures] = useState(false)
   const [openCreateModal, setOpenCreateModal] = useState(false)
 
   const addLecture = (newLecture) => {
@@ -33,9 +34,38 @@ const Courses = () => {
     setData({lectures: [newLecture, ...lectures]})
     setOpenCreateModal(false)
   }
-  const handleLoadLectures = () => {
+  const handleLoadLectures = async () => {
     const url = "/masterclass/get-video-list"
-    axios.post(url)
+    try {
+      setLoadingLectures(true)
+      const { data } = await axios.post(url)
+      let txt = "lectures"
+      let newLecturesNum = 0
+      if (data.lectures && data.lectures.length > 0) {
+        newLecturesNum = data.lectures.length
+        if (newLecturesNum === 1) {
+          txt = "lecture"
+        }
+      }
+      setStatus({
+        msg: `${newLecturesNum} ${txt} were loaded from Mux`,
+        variant: "success"
+      })
+      if (newLecturesNum > 0) {
+        setData(prevData => {
+          const newData = data
+          if (prevData && prevData.lectures) {
+            newData.lectures = newData.lectures.concat(prevData.lectures)
+          }
+          return newData
+        })
+      }
+    } catch(err) {
+      console.log(err)
+      setStatus({msg: "Could not load lectures", variant: "danger"})
+    } finally {
+      setLoadingLectures(false)
+    }
   }
 
   useEffect(() => {
@@ -47,34 +77,40 @@ const Courses = () => {
       } catch(err) {
         console.log(err)
         setData({ lectures: [] })
-        setError("Could not load lectures")
+        setStatus({msg: "Could not load lectures", variant: "danger"})
       }
     }
     fetchLectures()
   }, [])
 
   return (
-    <Stack size={4}>
+    <Stack spacing={4}>
       <Box background="neutral0" padding={4}>
-        <Stack size={4}>
+        <Stack horizontal spacing={4}>
           <Box>
             <Button onClick={() => setOpenCreateModal(true)}>New Lecture</Button>
           </Box>
           <Box>
-            <Button onClick={handleLoadLectures}>Load lectures from cloud</Button>
+            <Button
+              variant="success-light"
+              onClick={handleLoadLectures}
+              loading={loadingLectures}
+            >Load lectures from cloud</Button>
           </Box>
+        </Stack>
+        <Box paddingTop={4}>
           {
             !data ?
               <Typography variant="beta">Loading lectures...</Typography>
             : <LecturesContainer data={data} />
           }
-        </Stack>
+        </Box>
       </Box>
       {
-        error &&
-        <Status variant="danger">
+        status &&
+        <Status variant={status.variant}>
           <Typography>
-            {error}
+            {status.msg}
           </Typography>
         </Status>
       }
