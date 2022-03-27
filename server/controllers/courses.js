@@ -202,11 +202,11 @@ module.exports = {
       return ctx.badRequest("No access to this course")
     }
 
-    const lecturesOrdered = strapi.service("plugin::masterclass.courses").orderLectures(course)
+    const lecturesOrdered = strapi.service("plugin::masterclass.courses").orderLectures(student.course)
 
-    course.lectures = lecturesOrdered
+    student.course.lectures = lecturesOrdered
 
-    if (!(course.lectures && course.lectures.length)) {
+    if (!(student.course.lectures && student.course.lectures.length)) {
       return ctx.badRequest("This course does not have any lecture")
     }
 
