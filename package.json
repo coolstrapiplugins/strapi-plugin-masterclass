@@ -1,6 +1,6 @@
 {
   "name": "strapi-plugin-masterclass",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Learning management system plugin for Strapi V4",
   "keywords": [
     "strapi",
