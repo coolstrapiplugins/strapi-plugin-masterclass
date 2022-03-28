@@ -66,7 +66,8 @@ module.exports = {
       newLecture: {
         title,
         id: newLecture.id,
-        video: newVideoData
+        video: newVideoData,
+        courses: []
       }
     }
   },
