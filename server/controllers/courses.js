@@ -47,6 +47,7 @@ module.exports = {
         "description",
         "long_description",
         "price",
+        "lectures_order",
         "slug"
       ],
       populate: {
@@ -477,6 +478,7 @@ module.exports = {
                 "duration",
                 "title",
                 "description",
+                "lectures_order",
                 "price",
                 "slug"
               ],
