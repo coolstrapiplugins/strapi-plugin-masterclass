@@ -33,7 +33,12 @@ const CourseModal = (props) => {
   const [price, setPrice] = useState(data ? data.price || 29.99 : 29.99) // data.price could be null
   const [long_description, setLongDescription] = useState(data ? data.long_description : "")
 
-  const [availableLectures, setAvailableLectures] = useState(data ? data.lectures : null)
+  const [availableLectures, setAvailableLectures] = useState(() => {
+    if (!data) {
+      return null
+    }
+    return data.modules.reduce((lectures, module) => lectures.concat(module.lectures), [])
+  })
   const [loadingLectures, setLoadingLectures] = useState(false)
   const [loadLecturesError, setLoadLecturesError] = useState("")
 
@@ -62,17 +67,18 @@ const CourseModal = (props) => {
       try {
         const { data: res } = await axios.get(url)
         let filteredLecturesList = res.lectures
-        if (data && data.lectures && data.lectures.length > 0) {
+        if (availableLectures && availableLectures.length > 0) {
           filteredLecturesList = res.lectures.filter(({id}) => {
-            const lectureInCourse = data.lectures.some(c => c.id === id)
+            const lectureInCourse = availableLectures.some(c => c.id === id)
             return !lectureInCourse
           })
           filteredLecturesList = [
-            ...data.lectures,
+            ...availableLectures,
             ...filteredLecturesList
           ]
         }
-        setAvailableLectures(filteredLecturesList)
+        // setAvailableLectures(filteredLecturesList)
+        setAvailableLectures(res.lectures)
       } catch(err) {
         console.log(err)
         setLoadLecturesError("Could not fetch available lectures")
