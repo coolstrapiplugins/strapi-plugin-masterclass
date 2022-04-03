@@ -138,7 +138,7 @@ const CourseRow = ({ data }) => {
         }
       </Td>
       <Td>{titleSummary || `(${courseData.id}) untitled course`}</Td>
-      <Td>{courseData.lectures.length}</Td>
+      <Td>{courseData.modules.reduce((total, m) => total + m.lectures.length, 0)}</Td>
       <Td>{courseData.students.length}</Td>
       <Td>{courseData.duration || 0}</Td>
       <Td>{categoryTitleSummary}</Td>

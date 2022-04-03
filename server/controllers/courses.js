@@ -10,11 +10,16 @@ module.exports = {
         thumbnail: {
           fields: ["name", "url"]
         },
-        lectures: {
-          fields: ["title"],
+        modules: {
+          fields: ["title", "lectures_order", "duration"],
           populate: {
-            video: {
-              fields: ["duration"]
+            lectures: {
+              fields: ["title"],
+              populate: {
+                video: {
+                  fields: ["duration"]
+                }
+              }
             }
           }
         },
@@ -28,9 +33,9 @@ module.exports = {
         c.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(c)
       }
 
-      const lecturesOrdered = strapi.service("plugin::masterclass.courses").orderLectures(c)
+      const modulesOrdered = strapi.service("plugin::masterclass.courses").orderModules(c)
 
-      c.lectures = lecturesOrdered
+      c.modules = modulesOrdered
 
       return c
     }))
@@ -47,18 +52,23 @@ module.exports = {
         "description",
         "long_description",
         "price",
-        "lectures_order",
+        "modules_order",
         "slug"
       ],
       populate: {
         thumbnail: {
           select: ["name", "url"]
         },
-        lectures: {
-          select: ["title"],
+        modules: {
+          select: ["title", "lectures_order", "duration"],
           populate: {
-            video: {
-              select: ["duration"]
+            lectures: {
+              select: ["title"],
+              populate: {
+                video: {
+                  select: ["duration"]
+                }
+              }
             }
           }
         },
@@ -73,9 +83,9 @@ module.exports = {
         await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(course)
       }
 
-      const lecturesOrdered = strapi.service("plugin::masterclass.courses").orderLectures(course)
+      const modulesOrdered = strapi.service("plugin::masterclass.courses").orderModules(course)
 
-      course.lectures = lecturesOrdered
+      course.modules = modulesOrdered
     }
     return course
   },
@@ -176,10 +186,14 @@ module.exports = {
         populate: {
           course: {
             populate: {
-              lectures: {
+              modules: {
                 populate: {
-                  video: {
-                    select: ["id", "video_id"]
+                  lectures: {
+                    populate: {
+                      video: {
+                        select: ["id", "video_id"]
+                      }
+                    }
                   }
                 }
               }
@@ -203,15 +217,17 @@ module.exports = {
       return ctx.badRequest("No access to this course")
     }
 
-    const lecturesOrdered = strapi.service("plugin::masterclass.courses").orderLectures(student.course)
+    const modulesOrdered = strapi.service("plugin::masterclass.courses").orderModules(student.course)
 
-    student.course.lectures = lecturesOrdered
+    const lectures = modulesOrdered.reduce((lectures, module) => {
+      return lectures.concat(module.lectures)
+    }, [])
 
-    if (!(student.course.lectures && student.course.lectures.length)) {
+    if (!lectures.length) {
       return ctx.badRequest("This course does not have any lecture")
     }
 
-    const currentLecture = student.current_lecture || student.course.lectures[0]
+    const currentLecture = student.current_lecture || lectures[0]
 
     const config = await strapi.service('plugin::masterclass.upload').getConfig()
     const {
@@ -342,8 +358,12 @@ module.exports = {
         populate: {
           course: {
             populate: {
-              lectures: {
-                select: ["id"]
+              modules: {
+                populate: {
+                  lectures: {
+                    select: ["id"]
+                  }
+                }
               }
             }
           },
@@ -360,16 +380,20 @@ module.exports = {
       return ctx.badRequest("No access to this course")
     }
 
-    const lecturesOrdered =
-      strapi.service("plugin::masterclass.courses").orderLectures(student.course)
+    const modulesOrdered =
+      strapi.service("plugin::masterclass.courses").orderModules(student.course)
 
-    student.course.lectures = lecturesOrdered
+    // student.course.lectures = lecturesOrdered
 
-    if (!(student.course.lectures && student.course.lectures.length)) {
+    const rawLectures = modulesOrdered.reduce((lectures, module) => {
+      return lectures.concat(module.lectures)
+    }, [])
+
+    if (!rawLectures.length) {
       return ctx.badRequest("This course does not have any lectures")
     }
 
-    const currentLectureIndex = student.course.lectures.findIndex(
+    const currentLectureIndex = rawLectures.findIndex(
       l => l.id.toString() === lecture
     )
     if (currentLectureIndex < 0 ) {
@@ -385,10 +409,10 @@ module.exports = {
       // if so, remove it from the list
       const idx = classesCompleted.findIndex(l => l.id.toString() === lecture)
       if (idx < 0) {
-        // The lecture is being marked as seen
+        // The lecture is being marked as completed
         classesCompleted.push(lecture)
       } else {
-        // The lecture is being unmarked as seen
+        // The lecture is being unmarked as completed
         const firstHalf = classesCompleted.slice(0, idx)
         const secondHalf = classesCompleted.slice(idx + 1)
         classesCompleted = firstHalf.concat(secondHalf)
@@ -400,12 +424,12 @@ module.exports = {
     // Set as current lecture the lecture that follows the one just marked as seen
     let newCurrentLecture = student.current_lecture
     if (updateCurrentLecture) {
-      if (currentLectureIndex !== student.course.lectures.length - 1) {
+      if (currentLectureIndex !== rawLectures.length - 1) {
         // not the last lecture
-        newCurrentLecture = student.course.lectures[currentLectureIndex + 1]
+        newCurrentLecture = rawLectures[currentLectureIndex + 1]
       } else {
         // is the last lecture
-        newCurrentLecture = student.course.lectures[currentLectureIndex]
+        newCurrentLecture = rawLectures[currentLectureIndex]
       }
     }
 
@@ -478,7 +502,7 @@ module.exports = {
                 "duration",
                 "title",
                 "description",
-                "lectures_order",
+                "modules_order",
                 "price",
                 "slug"
               ],
@@ -486,11 +510,16 @@ module.exports = {
                 thumbnail: {
                   select: ["name", "url"]
                 },
-                lectures: {
-                  select: ["title"],
+                modules: {
+                  select: ["title", "duration", "lectures_order"],
                   populate: {
-                    video: {
-                      select: ["duration"]
+                    lectures: {
+                      select: ["title"],
+                      populate: {
+                        video: {
+                          select: ["duration"]
+                        }
+                      }
                     }
                   }
                 },
@@ -534,9 +563,9 @@ module.exports = {
         c.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(c)
       }
 
-      const lecturesOrdered = strapi.service("plugin::masterclass.courses").orderLectures(c)
+      const modulesOrdered = strapi.service("plugin::masterclass.courses").orderModules(c)
 
-      c.lectures = lecturesOrdered
+      c.modules = modulesOrdered
       return c
     }))
     res.ejercicios = await Promise.all(res.ejercicios.map(async e => {

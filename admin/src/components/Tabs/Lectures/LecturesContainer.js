@@ -370,9 +370,9 @@ const LectureModal = ({data, close, update}) => {
             >
               {
                 (availableVideos && availableVideos.length > 0) && (
-                  availableVideos.map(v => {
+                  availableVideos.map((v, idx) => {
                     return (
-                      <Option value={v.id} key={v.video_id}>
+                      <Option value={v.id} key={`${v.video_id}-${idx}`}>
                         {v.filename || `(${v.id}) untitled video`}
                       </Option>
                     )

@@ -14,8 +14,12 @@ const courseQuery = {
     thumbnail: {
       fields: ["name", "url"]
     },
-    lectures: {
-      fields: []
+    modules: {
+      populate: {
+        lectures: {
+          fields: []
+        }
+      }
     },
     category: {
       fields: ["slug", "title", "id"]
@@ -254,8 +258,12 @@ module.exports = {
         thumbnail: {
           select: ["name", "url"]
         },
-        lectures: {
-          select: ["id"]
+        modules: {
+          populate: {
+            lectures: {
+              select: ["id"]
+            }
+          }
         },
         category: {
           select: ["slug", "title", "id"]

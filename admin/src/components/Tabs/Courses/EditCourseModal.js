@@ -11,10 +11,12 @@ import { Status } from '@strapi/design-system/Status';
 import { Select, Option } from '@strapi/design-system/Select';
 import { Button } from '@strapi/design-system/Button';
 import { Typography } from '@strapi/design-system/Typography';
-import { Box } from "@strapi/design-system/Box"
+import { Box } from "@strapi/design-system/Box";
 import { TextInput } from "@strapi/design-system/TextInput"
-import { Textarea } from "@strapi/design-system/Textarea"
-import { NumberInput } from "@strapi/design-system/NumberInput"
+import { Textarea } from "@strapi/design-system/Textarea";
+import { Flex } from '@strapi/design-system/Flex';
+import { NumberInput } from "@strapi/design-system/NumberInput";
+import { Accordion, AccordionToggle, AccordionContent, AccordionGroup } from '@strapi/design-system/Accordion';
 
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
@@ -31,7 +33,6 @@ const CourseModal = (props) => {
   const [price, setPrice] = useState(data ? data.price || 29.99 : 29.99) // data.price could be null
   const [long_description, setLongDescription] = useState(data ? data.long_description : "")
 
-  const [selectedLectures, setSelectedLectures] = useState(data ? data.lectures : [])
   const [availableLectures, setAvailableLectures] = useState(data ? data.lectures : null)
   const [loadingLectures, setLoadingLectures] = useState(false)
   const [loadLecturesError, setLoadLecturesError] = useState("")
@@ -42,10 +43,16 @@ const CourseModal = (props) => {
   const [loadingCategories, setLoadingCategories] = useState(false)
   const [loadCategoriesError, setLoadCategoriesError] = useState("")
 
+  const [selectedModules, setSelectedModules] = useState(data ? data.modules : [])
+
+  const [moduleTitleInput, setModuleTitleInput] = useState("")
+
   const [selectedFeatIn, setSelectedFeatIn] = useState(data ? data.featured_in : [])
 
   const [sending, setSending] = useState(false)
   const [status, setStatus] = useState(null)
+
+  const [modulesExpanded, setModulesExpanded] = useState(false)
 
   useEffect(() => {
     const fetchLectures = async () => {
@@ -104,26 +111,6 @@ const CourseModal = (props) => {
     setSlug(newValue.replaceAll(" ", "-").toLowerCase())
   }
 
-  const handleClearLectures = () => {
-    setSelectedLectures([])
-  }
-
-  const handleChangeLectures = (lecturesIDs) => {
-    if (!availableLectures || !availableLectures.length > 0) {
-      return
-    }
-    if (!lecturesIDs || !lecturesIDs.length) {
-      setSelectedLectures([])
-      return
-    }
-    const lectures = availableLectures.filter(c => lecturesIDs.includes(c.id))
-    if (!lectures || !(lectures.length > 0)) {
-      console.log("Lectures " + lecturesIDs + " were not found in availableLectures")
-      return
-    }
-    setSelectedLectures(lectures)
-  }
-
   const handleChangeFeatIn = (categoriesIDs) => {
     if (!availableCategories || !availableCategories.length > 0) {
       return
@@ -162,6 +149,11 @@ const CourseModal = (props) => {
 
   const handleSubmit = async () => {
     // const url = `/masterclass/courses/${data.id}`
+    const modules = JSON.parse(JSON.stringify(selectedModules))
+    modules.forEach(m => {
+      // Submit only the lectures ids
+      m.lectures = m.lectures.map(l => l.id)
+    })
     const payload = {
       slug,
       price,
@@ -170,7 +162,7 @@ const CourseModal = (props) => {
       long_description,
       category: selectedCategory ? selectedCategory.id : null,
       featured_in: selectedFeatIn.map(c => c.id),
-      lectures: selectedLectures.map(l => l.id)
+      modules
     }
     try {
       setStatus(null)
@@ -191,18 +183,104 @@ const CourseModal = (props) => {
   }
 
   /*
-    Drag & drop lectures to adjust the orders.
-    See https://www.freecodecamp.org/news/how-to-add-drag-and-drop-in-react-with-react-beautiful-dnd/
+  *  Drag & drop lectures to adjust their order inside modules.
   */
-  const handleDragEnd = (result) => {
+  const handleLectureDragEnd = (midx, result) => {
     if (!result.destination) {
       return
     }
-    const items = Array.from(selectedLectures)
-    const [reorderedItem] = items.splice(result.source.index, 1)
-    items.splice(result.destination.index, 0, reorderedItem)
+  }
+  /**
+  * Drag & drop modules to adjust their order.
+  * See https://www.freecodecamp.org/news/how-to-add-drag-and-drop-in-react-with-react-beautiful-dnd/
+  */
+  const handleModuleDragEnd = (result) => {
+    if (!result.destination) {
+      return
+    }
+    if (result.type === "MODULES") {
+      // reordering module
+      const items = Array.from(selectedModules)
+      const [reorderedItem] = items.splice(result.source.index, 1)
+      items.splice(result.destination.index, 0, reorderedItem)
 
-    setSelectedLectures(items)
+      setSelectedModules(items)
+    } else {
+      const midx = parseInt(result.type,10)
+      // reordering lectures
+      const modules = Array.from(selectedModules)
+      const module = modules[midx]
+      if (!module) {
+        console.log("module",midx,"not found")
+        return
+      }
+
+      if (!(module.lectures && module.lectures.length > 0)) {
+        return
+      }
+
+      const items = Array.from(module.lectures)
+      const [reorderedItem] = items.splice(result.source.index, 1)
+      items.splice(result.destination.index, 0, reorderedItem)
+      modules[midx].lectures = items
+
+      setSelectedModules(modules)
+    }
+  }
+
+  const handleClearModuleLectures = (midx) => {
+    const modules = Array.from(selectedModules)
+
+    if (!modules[midx]) {
+      console.log("module",midx,"not found")
+      return
+    }
+
+    modules[midx].lectures = []
+
+    setSelectedModules(modules)
+  }
+
+  const handleChangeModuleLectures = (midx, lecturesIDs) => {
+    if (!availableLectures || !availableLectures.length > 0) {
+      return
+    }
+    let newModuleLectures
+    if (!lecturesIDs || !lecturesIDs.length) {
+      newModuleLectures = []
+    } else {
+      newModuleLectures = availableLectures.filter(c => lecturesIDs.includes(c.id))
+      if (!newModuleLectures || !(newModuleLectures.length > 0)) {
+        console.log("Lectures ",lecturesIDs," were not found in availableLectures")
+        return
+      }
+    }
+    const modules = Array.from(selectedModules)
+    modules[midx].lectures = newModuleLectures
+
+    setSelectedModules(modules)
+  }
+
+  const addModule = () => {
+    if (!moduleTitleInput) {
+      return
+    }
+    const newModule = {
+      title: moduleTitleInput,
+      lectures: []
+    }
+    setSelectedModules(selectedModules.concat(newModule))
+    setModuleTitleInput("")
+  }
+
+  const deleteModule = midx => {
+    if (!selectedModules || !selectedModules.length > 0) {
+      return
+    }
+    const module = selectedModules[midx]
+    const firstPart = selectedModules.slice(0,midx)
+    const secondPart = selectedModules.slice(midx+1)
+    setSelectedModules(firstPart.concat(secondPart))
   }
 
   return (
@@ -328,82 +406,165 @@ const CourseModal = (props) => {
           <Stack spacing={2}>
 
             <Typography variant="beta">
-              Lectures details:
+              Modules details:
             </Typography>
-
-            <Select
-              id="lectures-selection"
-              label="Select Lectures"
-              placeholder="Choose the lectures this course will have"
-              clearLabel="Unselect all the lectures"
-              onClear={handleClearLectures}
-              error={loadLecturesError}
-              value={selectedLectures ? selectedLectures.map(l => l.id) : []}
-              onChange={handleChangeLectures}
-
-              customizeContent={values => `${values.length} currently selected`}
-              multi
-            >
-              {
-                (availableLectures && availableLectures.length > 0) && (
-                  availableLectures.map(l => {
-                    return (
-                      <Option value={l.id} key={`${l.title}-${l.id}`}>
-                        {l.title || `(${l.id}) untitled lecture`}
-                      </Option>
-                    )
-                  })
-                )
-              }
-            </Select>
-            {/*
-              Drag & drop lectures to adjust the orders.
-              See https://www.freecodecamp.org/news/how-to-add-drag-and-drop-in-react-with-react-beautiful-dnd/
-            */}
             {
-              (selectedLectures && selectedLectures.length > 0) && (
-                <>
-                  <Typography>
-                    Adjust the order of selected lectures
-                  </Typography>
-                  <DragDropContext onDragEnd={handleDragEnd}>
-                    <Droppable droppableId="lectures">
-                    {(provided) => (
-                      <Box {...provided.droppableProps} ref={provided.innerRef}>
-                        {
-                          selectedLectures.map((l, idx) => (
-                            <Draggable
-                              key={`${l.id}-${l.title}`}
-                              draggableId={`${l.id}-${l.title}`}
-                              index={idx}
-                            >
-                              {(provided) => (
-                                <Box
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
+              selectedModules.map((m, midx) => {
+                return (
+                  <Flex
+                    key={`module-${midx}`}
+                    alignItems="flex-end"
+                  >
+                    <Select
+                      id={`module-${midx}-lectures-selection`}
+                      label={`${midx+1}. ${m.title || "("+m.id+")  untitled module"}`}
+                      placeholder="Choose the lectures this module will have"
+                      clearLabel="Unselect all the lectures"
+                      onClear={() => handleClearModuleLectures(midx)}
+                      error={loadLecturesError}
+                      value={selectedModules[midx].lectures.map(l => l.id)}
+                      onChange={ids => handleChangeModuleLectures(midx, ids)}
 
-                                  paddingBottom={1}
-                                >
-                                  <Box
-                                  padding={4}
-                                  background="secondary100"
-                                  >
-                                    {idx + 1}. {l.title || `(${l.id}) untitled lecture`}
-                                  </Box>
-                                </Box>
-                              )}
-                            </Draggable>
-                          ))
-                        }
-                        {provided.placeholder}
-                      </Box>
-                    )}
-                    </Droppable>
-                  </DragDropContext>
-                </>
+                      customizeContent={values => `${values.length} lectures selected`}
+                      multi
+                    >
+                      {
+                        (availableLectures && availableLectures.length > 0) && (
+                          availableLectures.map(l => {
+                            return (
+                              <Option value={l.id} key={`${l.title}-${l.id}`}>
+                                {l.title || `(${l.id}) untitled lecture`}
+                              </Option>
+                            )
+                          })
+                        )
+                      }
+                    </Select>
+                    <Box paddingLeft={3}>
+                      <Button
+                        variant="danger"
+                        onClick={() => deleteModule(midx)}
+                      >Delete module</Button>
+                    </Box>
+                  </Flex>
+                )
+              })
+            }
+
+            {
+              (selectedModules && selectedModules.length > 0) && (
+                <DragDropContext onDragEnd={handleModuleDragEnd}>
+                  <Droppable droppableId="modules" type="MODULES">
+                  {(provided) => (
+                    <>
+                    <Box {...provided.droppableProps} ref={provided.innerRef}>
+                      {
+                        selectedModules.map((m, midx) => (
+                          <Draggable
+                            key={`adjust-module-${midx}-${m.title}`}
+                            draggableId={`adjust-module-${midx}-${m.title}`}
+                            index={midx}
+                          >
+                            {(provided) => (
+                              <Box
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                              >
+                              <Accordion
+                                paddingBottom={1}
+                                expanded={modulesExpanded}
+                                onToggle={() => setModulesExpanded(!modulesExpanded)}
+                                id={`adjust-module-${midx}-${m.title}`}
+                              >
+                                <AccordionToggle
+                                  title={
+                                    `${midx+1}. ${m.title || "("+m.idx+") untitled module"}`
+                                  }
+                                  description={
+                                    (m.lectures && m.lectures.length > 0) ?
+                                    `${m.lectures.length} lecture${m.lectures.length>1?"s":""} - Adjust the lectures order for this module`
+                                    : "0 lectures in this module"
+                                  }
+                                />
+                                <AccordionContent>
+                                  {/*
+                                    Drag & drop lectures to adjust the orders.
+                                    See https://www.freecodecamp.org/news/how-to-add-drag-and-drop-in-react-with-react-beautiful-dnd/
+                                  */}
+                                  {
+                                    (m.lectures && m.lectures.length > 0) && (
+                                      <Droppable
+                                        droppableId={`module-${midx}-lectures`}
+                                        type={midx}
+                                      >
+                                      {(provided) => (
+                                        <Box {...provided.droppableProps} ref={provided.innerRef}>
+                                          {
+                                            m.lectures.map((l, idx) => (
+                                              <Draggable
+                                                key={`${l.id}-${l.title}-module-${midx}`}
+                                                draggableId={`${l.id}-${l.title}-module-${midx}`}
+                                                index={idx}
+                                              >
+                                                {(provided) => (
+                                                  <Box
+                                                    ref={provided.innerRef}
+                                                    {...provided.draggableProps}
+                                                    {...provided.dragHandleProps}
+
+                                                    paddingTop={1}
+                                                  >
+                                                    <Box
+                                                      padding={4}
+                                                      background="neutral200"
+                                                    >
+                                                      {idx + 1}. {l.title || `(${l.id}) untitled lecture`}
+                                                    </Box>
+                                                  </Box>
+                                                )}
+                                              </Draggable>
+                                            ))
+                                          }
+                                          {provided.placeholder}
+                                        </Box>
+                                      )}
+                                      </Droppable>
+                                    )
+                                  }
+                                </AccordionContent>
+                              </Accordion>
+                              </Box>
+                            )}
+                          </Draggable>
+                        ))
+                      }
+                      {provided.placeholder}
+                    </Box>
+                    </>
+                  )}
+                  </Droppable>
+                </DragDropContext>
               )
             }
+
+
+            <Box paddingTop={4}>
+              <Flex alignItems="flex-end">
+                <TextInput
+                  label="Module title"
+                  name="module-title"
+                  onChange={e => setModuleTitleInput(e.target.value)}
+                  value={moduleTitleInput}
+                  required
+                />
+                <Box paddingLeft={3}>
+                  <Button
+                    onClick={addModule}
+                  >Create module</Button>
+                </Box>
+              </Flex>
+            </Box>
 
           </Stack>
         </Stack>

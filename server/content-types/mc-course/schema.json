@@ -65,6 +65,15 @@
     },
     "lectures_order": {
       "type": "json"
+    },
+    "modules": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "plugin::masterclass.mc-module",
+      "mappedBy": "course"
+    },
+    "modules_order": {
+      "type": "json"
     }
   }
 }

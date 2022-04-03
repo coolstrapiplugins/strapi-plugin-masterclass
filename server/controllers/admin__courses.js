@@ -7,14 +7,6 @@ module.exports = {
         filters: {},
         sort: { createdAt: "DESC" },
         populate: {
-          lectures: {
-            select: ["id", "title"],
-            populate: {
-              video: {
-                select: ["video_id", "filename", "url", "duration"]
-              }
-            }
-          },
           students: {
             populate: {
               user: {
@@ -27,14 +19,27 @@ module.exports = {
           },
           featured_in: {
             select: ["id", "title", "slug"]
+          },
+          modules: {
+            select: ["title"],
+            populate: {
+              lectures: {
+                select: ["id", "title"],
+                populate: {
+                  video: {
+                    select: ["video_id", "filename", "url", "duration"]
+                  }
+                }
+              }
+            }
           }
         }
       }
     )
     courses.forEach(course => {
-      const lecturesOrdered = strapi.service("plugin::masterclass.courses").orderLectures(course)
+      const modulesOrdered = strapi.service("plugin::masterclass.courses").orderModules(course)
 
-      course.lectures = lecturesOrdered
+      course.modules = modulesOrdered
     })
     ctx.body = { courses }
   },

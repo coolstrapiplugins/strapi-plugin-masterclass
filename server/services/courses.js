@@ -74,13 +74,27 @@ module.exports = ({ strapi }) => ({
 
     return slugs.join("/")
   },
-  orderLectures(course) {
+  orderModules(course) {
+    let modulesOrdered = course.modules
+    if (course.modules_order && course.modules_order.length > 0) {
+      modulesOrdered = []
+      course.modules_order.map(moduleID => {
+        const module = course.modules.find(({id}) => id === moduleID)
+        if (module) {
+          module.lectures = this.orderLectures(module)
+          modulesOrdered.push(module)
+        }
+      })
+    }
 
-    let lecturesOrdered = course.lectures
-    if (course.lectures_order && course.lectures_order.length > 0) {
+    return modulesOrdered
+  },
+  orderLectures(module) {
+    let lecturesOrdered = module.lectures
+    if (module.lectures_order && module.lectures_order.length > 0) {
       lecturesOrdered = []
-      course.lectures_order.map(lectureID => {
-        const lecture = course.lectures.find(({id}) => id === lectureID)
+      module.lectures_order.map(lectureID => {
+        const lecture = module.lectures.find(({id}) => id === lectureID)
         if (lecture) {
           lecturesOrdered.push(lecture)
         }
@@ -89,7 +103,7 @@ module.exports = ({ strapi }) => ({
 
     return lecturesOrdered
   },
-  async calculateCourseDuration(lectures) {
+  async calculateDuration(lectures) {
     const storedLectures = await strapi.entityService.findMany("plugin::masterclass.mc-lecture", {
       filters: {
         id: lectures
@@ -119,24 +133,58 @@ module.exports = ({ strapi }) => ({
         price,
         description,
         long_description,
-        lectures,
+        modules,
         category,
         featured_in
       }
     */
 
-    const { lectures } = body
-    const duration = await this.calculateCourseDuration(lectures)
+    let { modules } = body
+
+    modules = await Promise.all(modules.map(async m => {
+      m.duration = await this.calculateDuration(m.lectures)
+      return m
+    }))
+
+    const duration = modules.reduce((totalDuration, module) => totalDuration + module.duration, 0)
+
+    // Create modules if they don't have an ID.
+    const modulesIDs = await Promise.all(modules.map(async m => {
+      let module
+      if (m.id) {
+        // This is an existing module - update the title, duration, lectures, and lectures order
+        module = await strapi.entityService.update("plugin::masterclass.mc-module", m.id, {
+          data: {
+            ...m,
+            lectures_order: m.lectures
+          }
+        })
+      } else {
+        // This is a new module - create it and associate it with the lectures
+        module = await strapi.entityService.create("plugin::masterclass.mc-module", {
+          data: {
+            ...m,
+            lectures_order: m.lectures
+          }
+        })
+      }
+      return module.id
+    }))
 
     const query = {
       data: {
         ...body,
-        lectures_order: lectures,
+        modules: modulesIDs,
+        modules_order: modulesIDs,
         duration
       },
       populate: {
-        lectures: {
-          fields: ["id","title"]
+        modules: {
+          populate: {
+            lectures: {
+              fields: ["id","title"]
+            }
+          }
         },
         category: {
           fields: ["id","slug","title"]

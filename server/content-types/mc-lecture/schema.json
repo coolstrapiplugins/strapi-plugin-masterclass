@@ -16,7 +16,7 @@
       "type": "relation",
       "relation": "manyToMany",
       "target": "plugin::masterclass.mc-course",
-      "inversedBy": "lectures"
+      "mappedBy": "lectures"
     },
     "title": {
       "type": "string"
