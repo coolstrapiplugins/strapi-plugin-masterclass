@@ -12,12 +12,6 @@
     "comment": ""
   },
   "attributes": {
-    "courses": {
-      "type": "relation",
-      "relation": "manyToMany",
-      "target": "plugin::masterclass.mc-course",
-      "mappedBy": "lectures"
-    },
     "title": {
       "type": "string"
     },
