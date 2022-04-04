@@ -20,6 +20,16 @@ const orderQuery = {
       populate: {
         category: {
           fields: ["slug", "title", "id"]
+        },
+        thumbnail: {
+          fields: ["name", "url"]
+        },
+        modules: {
+          populate: {
+            lectures: {
+              fields: []
+            }
+          }
         }
       }
     },
@@ -32,6 +42,9 @@ const orderQuery = {
         "slug"
       ],
       populate: {
+        thumbnail: {
+          fields: ["name", "url"]
+        },
         category: {
           fields: ["slug", "title", "id"]
         }
