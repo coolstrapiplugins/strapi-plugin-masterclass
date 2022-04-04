@@ -135,10 +135,8 @@ const LectureModal = ({data, close, update}) => {
   const [duration, setDuration] = useState(data.video ? data.video.duration : "0")
   const [playbackID, setPlaybackID] = useState(data.video ? data.video.video_id : "")
   const [selectedVideo, setSelectedVideo] = useState(data.video)
-  const [selectedCourses, setSelectedCourses] = useState(data.courses)
 
   const [availableVideos, setAvailableVideos] = useState(data.video ? [data.video] : null)
-  const [availableCourses, setAvailableCourses] = useState(data.courses || null)
   const [loadingVideos, setLoadingVideos] = useState(false)
   const [loadingCourses, setLoadingCourses] = useState(false)
   const [loadVideosError, setLoadVideosError] = useState("")
@@ -155,7 +153,6 @@ const LectureModal = ({data, close, update}) => {
       setLoadVideosError("")
       try {
         const { data: res } = await axios.get(url)
-        // const filteredVideoList = res.videos.filter(v => v.id !== data.video.id)
         let filteredVideoList = res.videos
         if (data.video) {
           filteredVideoList = [
@@ -172,25 +169,6 @@ const LectureModal = ({data, close, update}) => {
       }
     }
 
-    const fetchCourses = async () => {
-      const url = `/masterclass/list-courses`
-      setLoadingCourses(true)
-      setLoadCoursesError("")
-      try {
-        const { data: res } = await axios.get(url)
-        const filteredCoursesList = res.courses.filter(({id}) => {
-          const lectureInCourse = data.courses.some(c => c.id === id)
-          return !lectureInCourse
-        })
-        setAvailableCourses([...data.courses, ...filteredCoursesList])
-      } catch(err) {
-        console.log(err)
-        setLoadCoursesError("Could not fetch available courses")
-      } finally {
-        setLoadingCourses(false)
-      }
-    }
-    fetchCourses()
     fetchVideos()
   }, [data])
 
@@ -211,22 +189,6 @@ const LectureModal = ({data, close, update}) => {
     inputFileRef.current.value = ""
   }
 
-  const handleChangeCourses = (coursesIDs) => {
-    if (!availableCourses || !availableCourses.length > 0) {
-      return
-    }
-    if (!coursesIDs || !coursesIDs.length) {
-      setSelectedCourses([])
-      return
-    }
-    const courses = availableCourses.filter(c => coursesIDs.includes(c.id))
-    if (!courses || !(courses.length > 0)) {
-      console.log("Courses " + coursesIDs + " were not found in availableCourses")
-      return
-    }
-    setSelectedCourses(courses)
-  }
-
   const handleChangeVideoFile = (e) => {
     const newAttachment = e.target.files[0]
     setFilename(newAttachment.name)
@@ -242,10 +204,6 @@ const LectureModal = ({data, close, update}) => {
     setSelectedVideo(null)
     setFile(null)
     inputFileRef.current.value = ""
-  }
-
-  const handleClearCourses = () => {
-    setSelectedCourses([])
   }
 
   const handleSave = async () => {
@@ -311,7 +269,7 @@ const LectureModal = ({data, close, update}) => {
                 Courses: {" "}
               </Typography>
               {
-                (data.courses.lenght > 0) ?
+                (data.courses.length > 0) ?
                   data.courses.map((c, index) => {
                     let txt = c.title || `(${c.id}) untitled course`
                     if (index < data.courses.length -1) {
@@ -323,33 +281,6 @@ const LectureModal = ({data, close, update}) => {
               }
             </Typography>
 
-
-            <Select
-              id="courses-selection"
-              label="Select Courses"
-              placeholder="Choose oen or more courses"
-              clearLabel="Unlink from all the courses"
-              onClear={handleClearCourses}
-              error={loadCoursesError}
-              value={selectedCourses ? selectedCourses.map(c => c.id) : []}
-              onChange={handleChangeCourses}
-
-              customizeContent={values => `${values.length} currently selected`}
-              multi
-              withTags
-            >
-              {
-                (availableCourses && availableCourses.length > 0) && (
-                  availableCourses.map(c => {
-                    return (
-                      <Option value={c.id} key={c.slug}>
-                        {c.title || `(${c.id}) untitled course`}
-                      </Option>
-                    )
-                  })
-                )
-              }
-            </Select>
           </Stack>
 
 
