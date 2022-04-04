@@ -7,26 +7,50 @@ const axios = require('axios')
 
 module.exports = {
   async find(ctx) {
-    const lectures = await strapi.entityService
+    let lectures = await strapi.entityService
     .findMany("plugin::masterclass.mc-lecture",
       {
         filters: {},
         populate: {
-          courses: {
-            select: ["id", "title"]
-          },
           video: {
             select: ["video_id", "filename", "duration", "url"]
           }
         }
       }
     )
+    lectures = await Promise.all(lectures.map(async lecture => {
+      // Get the modules where this lecture is in.
+      const modules = await strapi.db.query("plugin::masterclass.mc-module").findMany({
+        where: {
+          lectures: [lecture.id]
+        },
+        populate: {
+          course: {
+            select: ["title", "id"]
+          }
+        }
+      })
+      const courses = modules.map(m => m.course)
+
+      const uniqueCourses = courses.reduce((dict, course) => {
+        dict[`${course.title}-${course.id}`] = course
+        return dict
+      }, {})
+
+      lecture.courses = []
+
+      for (const key in uniqueCourses) {
+        lecture.courses.push(uniqueCourses[key])
+      }
+
+      return lecture
+    }))
     ctx.body = { lectures }
   },
   async create(ctx) {
     const { files, body } = ctx.request
     if (!files || !files.video) {
-      return ctx.badRequest("There is no video")
+      return ctx.badRequest("There should be a video")
     }
     const data = JSON.parse(body.data)
     if (!data || !data.title) {
@@ -66,8 +90,7 @@ module.exports = {
       newLecture: {
         title,
         id: newLecture.id,
-        video: newVideoData,
-        courses: []
+        video: newVideoData
       }
     }
   },
@@ -182,9 +205,6 @@ module.exports = {
       data: newLectureData,
       fields: ["id", "title"],
       populate: {
-        courses: {
-          fields: ["id", "title"]
-        },
         video: {
           fields: ["video_id", "filename", "duration"]
         }
