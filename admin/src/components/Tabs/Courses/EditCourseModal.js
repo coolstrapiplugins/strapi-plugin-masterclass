@@ -21,6 +21,7 @@ import { Accordion, AccordionToggle, AccordionContent, AccordionGroup } from '@s
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 import axios from "../../../utils/axiosInstance"
+import formatDuration from "../../../utils/duration"
 
 const CourseModal = (props) => {
   const {data, close, update, httpMethod, submitUrl, modalHeaderText, closeAfterSubmit} = props
@@ -28,6 +29,9 @@ const CourseModal = (props) => {
 
   // data could be null
   const [title, setTitle] = useState(data ? data.title : "")
+
+  const [duration, setDuration] = useState(data ? data.duration : 0)
+
   const [description, setDescription] = useState(data ? data.description : "")
   const [slug, setSlug] = useState(data ? data.slug : "")
   const [price, setPrice] = useState(data ? data.price || 29.99 : 29.99) // data.price could be null
@@ -58,6 +62,16 @@ const CourseModal = (props) => {
   const [status, setStatus] = useState(null)
 
   const [modulesExpanded, setModulesExpanded] = useState(false)
+
+  useEffect(() => {
+    const newDuration = selectedModules.reduce((total, module) => {
+      for (var i = module.lectures.length - 1; i >= 0; i--) {
+        total += module.lectures[i].video.duration
+      }
+      return total
+    }, 0)
+    setDuration(newDuration)
+  }, [selectedModules])
 
   useEffect(() => {
     const fetchLectures = async () => {
@@ -320,6 +334,13 @@ const CourseModal = (props) => {
               name="slug"
               disabled
               value={slug}
+            />
+            <TextInput
+              placeholder="Duration"
+              label="Duration"
+              name="duration"
+              disabled
+              value={formatDuration(duration)}
             />
             <NumberInput
               label="Price"

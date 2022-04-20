@@ -25,6 +25,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import EditCourseModal from "./EditCourseModal"
 
 import axios from "../../../utils/axiosInstance"
+import formatDuration from "../../../utils/duration"
 
 const ROW_COUNT = 6;
 const COL_COUNT = 10;
@@ -71,7 +72,7 @@ const CoursesContainer = ({data}) => {
                     <Typography fontWeight="bold">Students</Typography>
                   </Th>
                   <Th>
-                    <Typography fontWeight="bold">Duration (s)</Typography>
+                    <Typography fontWeight="bold">Duration</Typography>
                   </Th>
                   <Th>
                     <Typography fontWeight="bold">Category</Typography>
@@ -140,7 +141,7 @@ const CourseRow = ({ data }) => {
       <Td>{titleSummary || `(${courseData.id}) untitled course`}</Td>
       <Td>{courseData.modules.reduce((total, m) => total + m.lectures.length, 0)}</Td>
       <Td>{courseData.students.length}</Td>
-      <Td>{courseData.duration || 0}</Td>
+      <Td>{formatDuration(courseData.duration || 0)}</Td>
       <Td>{categoryTitleSummary}</Td>
     </TableRow>
   )

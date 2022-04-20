@@ -18,6 +18,7 @@ import { TextInput } from '@strapi/design-system/TextInput';
 import { Select, Option } from '@strapi/design-system/Select';
 
 import axios from "../../../utils/axiosInstance"
+import formatDuration from "../../../utils/duration"
 
 const ROW_COUNT = 6;
 const COL_COUNT = 10;
@@ -56,7 +57,7 @@ const LecturesContainer = ({data}) => {
                     <Typography fontWeight="bold">Course</Typography>
                   </Th>
                   <Th>
-                    <Typography fontWeight="bold">Duration (s)</Typography>
+                    <Typography fontWeight="bold">Duration</Typography>
                   </Th>
                 </Tr>
               </Thead>
@@ -122,7 +123,7 @@ const LectureRow = ({ data }) => {
       </Td>
       <Td>{titleSummary}</Td>
       <Td>{courseTitleSummary}</Td>
-      <Td>{lectureData.video.duration}</Td>
+      <Td>{formatDuration(lectureData.video.duration || 0)}</Td>
     </TableRow>
   )
 }
@@ -328,9 +329,9 @@ const LectureModal = ({data, close, update}) => {
             />
 
             <TextInput
-              label="Duration in seconds"
+              label="Duration"
               name="duration"
-              value={duration}
+              value={formatDuration(duration)}
               disabled
             />
 
