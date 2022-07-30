@@ -1,5 +1,5 @@
 {
-  "name": "masterclass",
+  "name": "@coolstrapiplugins/strapi-plugin-masterclass",
   "version": "0.0.0",
   "description": "Learning management system",
   "strapi": {
