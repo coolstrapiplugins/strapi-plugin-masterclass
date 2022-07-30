@@ -1,6 +1,6 @@
 {
   "name": "@coolstrapiplugins/strapi-plugin-masterclass",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Learning management system",
   "strapi": {
     "name": "masterclass",
@@ -28,5 +28,6 @@
     "npm": ">=6.0.0"
   },
   "license": "MIT",
-  "repository": "https://github.com/coolstrapiplugins/strapi-plugin-masterclass"
+  "repository": "https://github.com/coolstrapiplugins/strapi-plugin-masterclass",
+  "homepage": "https://coolstrapiplugins.github.io"
 }
