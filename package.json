@@ -26,6 +26,9 @@
     "stripe": "^8.198.0",
     "uuid": "^8.3.2"
   },
+  "peerDependencies": {
+    "@strapi/strapi": "^4.0.0"
+  },
   "author": {
     "name": "Luis G. Villegas",
     "email": "luisguveal@gmail.com"
