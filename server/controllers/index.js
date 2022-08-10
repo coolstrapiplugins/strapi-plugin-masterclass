@@ -9,6 +9,7 @@ const admin__videos = require('./admin__videos');
 const categories = require("./categories");
 const ejercicios = require("./ejercicios");
 const courses = require("./courses");
+const orders = require("./orders");
 const uploads = require("./uploads");
 
 module.exports = {
@@ -20,6 +21,7 @@ module.exports = {
   admin__videos,
   categories,
   courses,
+  orders,
   uploads,
   ejercicios
 };

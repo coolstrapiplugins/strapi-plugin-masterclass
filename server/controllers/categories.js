@@ -52,6 +52,8 @@ module.exports = {
   * It is meant for populating information on some page that lists all the categories,
   * like the homepage.
   */
+  courseQuery,
+  ejercicioQuery,
   async index(ctx) {
     const categories = await strapi.entityService.findMany("plugin::masterclass.mc-category", {
       filter: {},
