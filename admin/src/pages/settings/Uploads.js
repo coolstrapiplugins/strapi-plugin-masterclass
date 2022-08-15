@@ -196,7 +196,7 @@ const SettingsPage = () => {
               <Typography fontWeight="bold">
                 {
                   !config.initial ? "loading..." :
-                  config.initial.mux_access_key_id || "unset"
+                  config.initial.mux_access_key_id || "not set"
                 }
               </Typography>
             </Typography>
@@ -206,7 +206,7 @@ const SettingsPage = () => {
                 {
                   !config.initial ? "loading..." :
                   config.initial.mux_access_key_secret ?
-                  config.initial.mux_access_key_secret.substr(0,45)+"..." : "unset"
+                  config.initial.mux_access_key_secret.substr(0,45)+"..." : "not set"
                 }
               </Typography>
             </Typography>
@@ -215,7 +215,7 @@ const SettingsPage = () => {
               <Typography fontWeight="bold">
                 {
                   !config.initial ? "loading..." :
-                  config.initial.mux_signing_key_id || "unset"
+                  config.initial.mux_signing_key_id || "not set"
                 }
               </Typography>
             </Typography>
@@ -225,7 +225,7 @@ const SettingsPage = () => {
                 {
                   !config.initial ? "loading..." :
                   config.initial.mux_signing_private_key ?
-                  config.initial.mux_signing_private_key.substr(0,45)+"..." : "unset"
+                  config.initial.mux_signing_private_key.substr(0,45)+"..." : "not set"
                 }
               </Typography>
             </Typography>
@@ -238,7 +238,7 @@ const SettingsPage = () => {
                 {
                   !config.initial ? "loading..." :
                   config.initial.aws_bucket ?
-                  config.initial.aws_bucket : "unset"
+                  config.initial.aws_bucket : "not set"
                 }
               </Typography>
             </Typography>
@@ -249,7 +249,7 @@ const SettingsPage = () => {
                 {
                   !config.initial ? "loading..." :
                   config.initial.aws_region ?
-                  config.initial.aws_region : "unset"
+                  config.initial.aws_region : "not set"
                 }
               </Typography>
             </Typography>
@@ -260,7 +260,7 @@ const SettingsPage = () => {
                 {
                   !config.initial ? "loading..." :
                   config.initial.aws_access_key_id ?
-                  config.initial.aws_access_key_id.substr(0,45)+"..." : "unset"
+                  config.initial.aws_access_key_id.substr(0,45)+"..." : "not set"
                 }
               </Typography>
             </Typography>
@@ -271,7 +271,7 @@ const SettingsPage = () => {
                 {
                   !config.initial ? "loading..." :
                   config.initial.aws_access_key_secret ?
-                  config.initial.aws_access_key_secret.substr(0,45)+"..." : "unset"
+                  config.initial.aws_access_key_secret.substr(0,45)+"..." : "not set"
                 }
               </Typography>
             </Typography>
@@ -293,7 +293,7 @@ const SettingsPage = () => {
                 required={true}
               />
               <TextInput
-                label="Mux Access key ((((secret))))"
+                label="Mux Access key secret"
                 name="mux_access_key_secret"
                 onChange={e => handleChange("mux_access_key_secret", e.target.value)}
                 value={
