@@ -1,13 +1,13 @@
 # Strapi plugin Masterclass
 
-Turn your Strapi app into a full featured learning management platform and start selling courses.
+Turn your Strapi application into a full-featured Learning Management System and start selling courses.
 
 ## Features
 
-- Upload lectures to [Mux](https://mux.com) and create courses from within the Admin Panel
-- Organise courses in categories and nested categories
-- Accept payments with PayPal and credit card through Stripe
-- Allow students to save their progress in each course, and resume at any time
+- Upload lectures to [Mux](https://mux.com)
+- Create categories and nested categories
+- Integrate with [Payments plugin](https://npmjs.com/package/strapi-plugin-payments)
+- Students are able to save their progress in each course, and resume at any time
 - And much more
 
 ## Requirements
@@ -18,11 +18,6 @@ Turn your Strapi app into a full featured learning management platform and start
   - Base64-encoded Private Key
   - Access token ID
   - Secret Key
-- Stripe account
-  - Secret key
-- Paypal merchant app
-  - Client ID
-  - Client secret
 
 ## Installation
 
@@ -38,11 +33,11 @@ Once installed, go to `settings`, then `Masterclass Plugin` and fill in the fiel
 
 ![Video uploads config](https://raw.githubusercontent.com/luisguve/strapi-plugin-masterclass/main/video-uploads.png)
 
-In order to accept payments and create orders, you must configure [Stripe](https://stripe.com) and/or [PayPal merchant app](https://developer.paypal.com/developer/applications/), the set the propper configuration under `settings` > `Masterclass Plugin` > `Stripe`/`Paypal`
+Creating orders and accepting payments are done with the [Payments plugin](https://npmjs.com/package/strapi-plugin-payments). Therefore, in order to enable the API endpoints to sell courses, it is required to install the [Payments plugin](https://npmjs.com/package/strapi-plugin-payments) as well.
 
 ## Setting up permissions
 
-In order for the plugin to serve content, manage users and orders, you must enable some permissions of `Users & Permissions Plugin`for the `Masterclass` plugin.
+In order for the plugin to serve content, manage users and create and confirm orders, you must enable some endpoints in the `Users & Permissions Plugin`for the `Masterclass` plugin.
 
 For Authenticated users, enable the following:
 
@@ -91,7 +86,7 @@ This last one is for `Mux` to notify through webhooks when a video has been succ
 
 ## Sample client app
 
-For an implementation of a website querying this API, check out this [Next JS project](https://github.com/luisguve/tutoru-frontend-ts).
+For an example of a project using the APIs available in this plugin, check out this [Next JS project](https://github.com/luisguve/tutoru-frontend-ts).
 
 Demo: https://tutoruniversitario.netlify.app
 
@@ -100,5 +95,3 @@ Demo: https://tutoruniversitario.netlify.app
 ## Bug reports
 
 If you find a bug or need support for using this plugin, open an issue at https://github.com/luisguve/strapi-plugin-masterclass
-
-This plugin is a WIP project and this is the effort of a single developer, so feel free to contact me if you find it interesting, have an advise or would like to support in some way: luisguveal@gmail.com. I would like to hear from you!
