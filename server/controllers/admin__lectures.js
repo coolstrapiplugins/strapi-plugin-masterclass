@@ -216,7 +216,12 @@ module.exports = {
   async listLectures(ctx) {
     const lectures = await strapi.entityService.findMany("plugin::masterclass.mc-lecture", {
       filters: {},
-      fields: ["title"]
+      fields: ["title"],
+      populate: {
+        video: {
+          fields: ["duration"]
+        }
+      }
     })
     ctx.body = {
       lectures

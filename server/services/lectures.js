@@ -34,7 +34,8 @@ module.exports = ({ strapi }) => ({
     return {
       id: newLecture.id,
       title: data.id,
-      video: newVideoData
+      video: newVideoData,
+      courses: []
     }
   },
   /**

@@ -83,7 +83,8 @@ module.exports = {
       }
       items.push({
         price: course.price,
-        label: course.title
+        label: course.title,
+        quantity: 1
       })
     }
     // Get ejercicios details
@@ -106,7 +107,8 @@ module.exports = {
       }
       items.push({
         price: ejercicio.price,
-        label
+        label,
+        quantity: 1
       })
     }
 
@@ -115,12 +117,8 @@ module.exports = {
     let data
     const payment_method = method === "cc" ? "credit_card" : "paypal"
 
-    // Get request origin to redirect back after checkout
-    const BASE_URL = ctx.request.headers.origin || 'http://localhost:3000'
-
     const params = {
       user,
-      requestOrigin: BASE_URL,
       payment_method,
       payload: {courses_ids: courses, ejercicios_ids: ejercicios},
       items
