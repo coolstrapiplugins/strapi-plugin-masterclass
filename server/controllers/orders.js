@@ -1,6 +1,5 @@
 'use strict';
 
-const axios = require("axios")
 const { courseQuery, ejercicioQuery } = require("./categories")
 
 /**
@@ -8,8 +7,6 @@ const { courseQuery, ejercicioQuery } = require("./categories")
  * @param number 
  */
 const fromDecimalToInt = (number) => parseInt(number * 100)
-
-const PAYPAL_API = 'https://api-m.sandbox.paypal.com'; // Live https://api-m.paypal.com
 
 module.exports = {
   async find(ctx) {
@@ -145,16 +142,21 @@ module.exports = {
     }
     const { checkout_session } = ctx.request.body
 
+    const params = {
+      user,
+      checkout_session
+    }
+
     let order
 
     try {
-      const result = await strapi.service("plugin::payments.orders").create(params)
+      const result = await strapi.service("plugin::payments.orders").confirm(params)
       if (result.error) {
         return ctx[result.status](result.msg)
       }
       order = result
     } catch(err) {
-      console.log(JSON.stringify(err))
+      console.log(err)
       return ctx.internalServerError("Something went wrong")
     }
 
@@ -167,9 +169,9 @@ module.exports = {
     let courses = []
     let ejercicios = []
 
-    if (courses_ids) {
-      courses = await strapi.entityService("plugin::masterclass.courses").findMany({
-        where: {
+    if (courses_ids && courses_ids.length > 0) {
+      courses = await strapi.entityService.findMany("plugin::masterclass.mc-course", {
+        filters: {
           id: courses_ids
         },
         ...courseQuery
@@ -180,9 +182,9 @@ module.exports = {
         return c
       }))
     }
-    if (ejercicios_ids) {
-      ejercicios = await strapi.entityService("plugin::masterclass.ejercicios").findMany({
-        where: {
+    if (ejercicios_ids && ejercicios_ids.length > 0) {
+      ejercicios = await strapi.entityService.findMany("plugin::masterclass.mc-ejercicio", {
+        filters: {
           id: ejercicios_ids
         },
         ...ejercicioQuery
