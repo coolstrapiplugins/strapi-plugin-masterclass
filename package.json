@@ -1,6 +1,6 @@
 {
   "name": "strapi-plugin-masterclass",
-  "version": "2.2.5",
+  "version": "3.0.0",
   "description": "Learning management system plugin for Strapi V4",
   "keywords": [
     "strapi",
@@ -27,7 +27,8 @@
     "uuid": "^8.3.2"
   },
   "peerDependencies": {
-    "@strapi/strapi": "^4.0.0"
+    "@strapi/strapi": "^4.0.0",
+    "strapi-plugin-payments": "^1.0.0"
   },
   "author": {
     "name": "Luis G. Villegas",
