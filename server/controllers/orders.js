@@ -109,9 +109,6 @@ module.exports = {
       })
     }
 
-    let checkout_session
-    let total = 0
-    let data
     const payment_method = method === "cc" ? "credit_card" : "paypal"
 
     const params = {
