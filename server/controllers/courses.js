@@ -448,7 +448,7 @@ module.exports = {
       ok: true
     }
   },
-  // this handler only returns the IDs of all the courses and ejercicios purchased by the user
+  // this handler only returns the IDs of all the courses purchased by the user
   async getItemsPurchased(ctx) {
     const { user } = ctx.state
     if (!user) {
@@ -466,9 +466,6 @@ module.exports = {
               select: ["id"]
             }
           }
-        },
-        ejercicios: {
-          select: ["id"]
         }
       }
     })
@@ -476,8 +473,7 @@ module.exports = {
     let res = student
     if (!student) {
       res = {
-        courses: [],
-        ejercicios: []
+        courses: []
       }
     }
 
@@ -529,23 +525,6 @@ module.exports = {
               }
             }
           }
-        },
-        ejercicios: {
-          select: [
-            "id",
-            "title",
-            "description",
-            "price",
-            "slug"
-          ],
-          populate: {
-            thumbnail: {
-              select: ["name", "url"]
-            },
-            category: {
-              select: ["slug", "title", "id"]
-            }
-          }
         }
       }
     })
@@ -553,8 +532,7 @@ module.exports = {
     let res = student
     if (!student) {
       res = {
-        courses: [],
-        ejercicios: []
+        courses: []
       }
     }
     res.courses = await Promise.all(res.courses.map(async ({course: c}) => {
@@ -567,13 +545,6 @@ module.exports = {
 
       c.modules = modulesOrdered
       return c
-    }))
-    res.ejercicios = await Promise.all(res.ejercicios.map(async e => {
-      e.kind = "ejercicio"
-      if (e.category) {
-        e.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(e)
-      }
-      return e
     }))
 
     ctx.body = res

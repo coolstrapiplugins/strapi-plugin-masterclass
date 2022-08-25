@@ -1,6 +1,6 @@
 'use strict';
 
-const { courseQuery, ejercicioQuery } = require("./categories")
+const { courseQuery } = require("./categories")
 
 /**
  * Given a dollar amount number, convert it to it's value in cents
@@ -63,8 +63,8 @@ module.exports = {
       return ctx.badRequest("User must be authenticated")
     }
 
-    const { courses, ejercicios, method } = ctx.request.body
-    if ((!courses || !courses.length) && (!ejercicios || !ejercicios.length)) {
+    const { courses, method } = ctx.request.body
+    if (!courses || !courses.length) {
       return ctx.badRequest("No items received")
     }
 
@@ -84,37 +84,13 @@ module.exports = {
         quantity: 1
       })
     }
-    // Get ejercicios details
-    for (let i = 0; i < ejercicios.length; i++) {
-      const id = ejercicios[i]
-      const ejercicio = await strapi.entityService.findOne("plugin::masterclass.mc-ejercicio", id, {
-        fields: ["title", "price"],
-        populate: {
-          category: {
-            fields: ["title"]
-          }
-        }
-      })
-      if (!ejercicio) {
-        return ctx.badRequest("Course " + id + " not found")
-      }
-      let label = ejercicio.title
-      if (ejercicio.category) {
-        label = `${ejercicio.category.title} - ${ejercicio.title}`
-      }
-      items.push({
-        price: ejercicio.price,
-        label,
-        quantity: 1
-      })
-    }
 
     const payment_method = method === "cc" ? "credit_card" : "paypal"
 
     const params = {
       user,
       payment_method,
-      payload: {courses_ids: courses, ejercicios_ids: ejercicios},
+      payload: {courses_ids: courses},
       items
     }
 
@@ -161,10 +137,9 @@ module.exports = {
       return ctx.badRequest("Could not confirm payment")
     }
 
-    const { courses_ids, ejercicios_ids } = order.payload
+    const { courses_ids } = order.payload
 
     let courses = []
-    let ejercicios = []
 
     if (courses_ids && courses_ids.length > 0) {
       courses = await strapi.entityService.findMany("plugin::masterclass.mc-course", {
@@ -179,32 +154,14 @@ module.exports = {
         return c
       }))
     }
-    if (ejercicios_ids && ejercicios_ids.length > 0) {
-      ejercicios = await strapi.entityService.findMany("plugin::masterclass.mc-ejercicio", {
-        filters: {
-          id: ejercicios_ids
-        },
-        ...ejercicioQuery
-      })
-      ejercicios = await Promise.all(ejercicios.map(async e => {
-        e.kind = "ejercicio"
-        e.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(e)
-        return e
-      }))
-    }
 
-    // Sign in user to the courses and assign ejercicios purchased.
+    // Sign in user to the courses purchased.
     if (courses.length > 0) {
       await strapi.service('plugin::masterclass.courses')
         .signIntoMultipleCourses(user, courses)
     }
-    if (ejercicios.length > 0) {
-      await strapi.service('plugin::masterclass.ejercicios')
-        .assignEjercicios(user, ejercicios)
-    }
 
     order.courses = courses
-    order.ejercicios = ejercicios
 
     ctx.body = { order }
   }

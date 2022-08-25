@@ -5,7 +5,6 @@
  */
 
 const Mux = require('@mux/mux-node')
-const AWS = require('aws-sdk');
 const pluginId = require("../pluginId")
 
 module.exports = {
@@ -13,26 +12,13 @@ module.exports = {
     mux_access_key_id: "",
     mux_access_key_secret: "",
     mux_signing_key_id: "",
-    mux_signing_private_key: "",
-    aws_bucket: "",
-    aws_region: "",
-    aws_access_key_id: "",
-    aws_access_key_secret: ""
+    mux_signing_private_key: ""
   },
   mux_client: null,
-  aws_client: null,
   isValidMuxConfig: function(config) {
     return (
       config.mux_access_key_id     !== "" &&
       config.mux_access_key_secret !== ""
-    )
-  },
-  isValidAWSConfig: function(config) {
-    return (
-      config.aws_bucket            !== "" &&
-      config.aws_region            !== "" &&
-      config.aws_access_key_id     !== "" &&
-      config.aws_access_key_secret !== ""
     )
   },
   /**
@@ -65,15 +51,8 @@ module.exports = {
     }
     const newConfig = {...config, ...newConfigInput}
     const pluginStore = this.getStore()
-    pluginStore.set({ key: "config", value: newConfig})
+    pluginStore.set({ key: "config", value: newConfig })
     this.setMuxClient(newConfig)
-  },
-  getAWSClient: async function() {
-    if (!this.aws_client) {
-      const config = await this.getConfig()
-      this.setAWSClient(config)
-    }
-    return this.aws_client
   },
   getMuxClient: async function() {
     if (!this.mux_client) {
@@ -85,16 +64,6 @@ module.exports = {
   setMuxClient: function(config) {
     if (this.isValidMuxConfig(config)) {
       this.mux_client = new Mux(config.mux_access_key_id, config.mux_access_key_secret)
-    }
-  },
-  setAWSClient: function(config) {
-    if (this.isValidAWSConfig(config)) {
-      AWS.config.update({region: config.aws_region})
-
-      this.aws_client = new AWS.S3({
-        accessKeyId: config.aws_access_key_id,
-        secretAccessKey: config.aws_access_key_secret
-      })
     }
   }
 }
