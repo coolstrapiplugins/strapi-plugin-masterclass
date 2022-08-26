@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "@mux/mux-node": "^4.0.0",
-    "aws-sdk": "^2.1084.0",
     "co": "^4.6.0",
     "react-beautiful-dnd": "^13.1.0",
     "request": "^2.88.2",
