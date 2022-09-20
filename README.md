@@ -29,11 +29,11 @@ npm i strapi-plugin-masterclass
 
 ## Configuring private keys
 
-Once installed, go to `settings`, then `Masterclass Plugin` and fill in the fields under `Uploads` tab for storing the credentials for [Mux](https://mux.com). Optioanlly, you can configure an AWS private bucket for storing files in case that your application also sells digital assets such as PDFs or eBooks.
+Once installed, go to `settings`, then `Masterclass Plugin` and fill in the fields under `Uploads` tab to set the credentials to upload videos to [Mux](https://mux.com).
 
 ![Video uploads config](https://raw.githubusercontent.com/luisguve/strapi-plugin-masterclass/main/video-uploads.png)
 
-Creating orders and accepting payments are done with the [Payments plugin](https://npmjs.com/package/strapi-plugin-payments). Therefore, in order to enable the API endpoints to sell courses, it is required to install the [Payments plugin](https://npmjs.com/package/strapi-plugin-payments) as well.
+Creating orders and accepting payments are done through the [Payments plugin](https://npmjs.com/package/strapi-plugin-payments). Therefore, in order to enable the API endpoints to sell courses, it is required to install the [Payments plugin](https://npmjs.com/package/strapi-plugin-payments) as well.
 
 ## Setting up permissions
 
@@ -80,9 +80,29 @@ From `uploads`:
 
 - `update`
 
-This last one is for `Mux` to notify through webhooks when a video has been successfully uploaded and is ready. This will require that you configure a webhook in `Mux` dashboard pointing to `https://your-strapi-app.com/api/masterclass/upload-status`
+This last one is for `Mux` to notify through webhooks when a video has been successfully uploaded and is ready. This will require that you configure a webhook in the dashboard of `Mux` account pointing to `https://your-strapi-app.com/api/masterclass/upload-status`
 
 ![Public permissions](https://raw.githubusercontent.com/luisguve/strapi-plugin-masterclass/main/public.png)
+
+## Usage
+
+Creating courses and uploading lectures is done through the Strapi Admin Dashboard.
+
+Courses are organised in categoires, which can be nested.
+
+The API endpoints provide a way to list categories and information on their courses, as well as authentication keys to play videos for students and also marking the lectures as seen to register their progress as they watch the videos.
+
+### Creating lectures
+
+Go to the Masterclass plugin page, and there you will find two tabs: `Courses` and `Lectures`. Before creating a course, it is required to create some lectures.
+
+### Creating courses
+
+Go to the Masterclass plugin page and there you will find a `Create Course` button. When you click on this button, a modal containing a form will open up. Fill in the fields to set the `Course Title`, `Description`
+
+## API
+
+
 
 ## Sample client app
 
