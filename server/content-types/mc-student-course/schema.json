@@ -16,23 +16,27 @@
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::masterclass.mc-student",
-      "inversedBy": "courses"
+      "inversedBy": "courses",
+      "configurable": false
     },
     "course": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::masterclass.mc-course",
-      "inversedBy": "students"
+      "inversedBy": "students",
+      "configurable": false
     },
     "current_lecture": {
       "type": "relation",
       "relation": "oneToOne",
-      "target": "plugin::masterclass.mc-lecture"
+      "target": "plugin::masterclass.mc-lecture",
+      "configurable": false
     },
     "lectures_seen": {
       "type": "relation",
       "relation": "oneToMany",
-      "target": "plugin::masterclass.mc-lecture"
+      "target": "plugin::masterclass.mc-lecture",
+      "configurable": false
     }
   }
 }

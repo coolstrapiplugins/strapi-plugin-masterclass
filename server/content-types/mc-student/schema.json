@@ -15,13 +15,15 @@
     "user": {
       "type": "relation",
       "relation": "oneToOne",
-      "target": "plugin::users-permissions.user"
+      "target": "plugin::users-permissions.user",
+      "configurable": false
     },
     "courses": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "plugin::masterclass.mc-student-course",
-      "mappedBy": "student"
+      "mappedBy": "student",
+      "configurable": false
     }
   }
 }
