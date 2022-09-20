@@ -16,25 +16,32 @@
       "type": "relation",
       "relation": "oneToMany",
       "target": "plugin::masterclass.mc-lecture",
-      "mappedBy": "video"
+      "mappedBy": "video",
+      "configurable": false
     },
     "ready": {
-      "type": "boolean"
+      "type": "boolean",
+      "configurable": false
     },
     "temp_id": {
-      "type": "string"
+      "type": "string",
+      "configurable": false
     },
     "video_id": {
-      "type": "string"
+      "type": "string",
+      "configurable": false
     },
     "duration": {
-      "type": "integer"
+      "type": "integer",
+      "configurable": false
     },
     "filename": {
-      "type": "string"
+      "type": "string",
+      "configurable": false
     },
     "url": {
-      "type": "string"
+      "type": "string",
+      "configurable": false
     }
   }
 }
