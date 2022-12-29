@@ -15,7 +15,7 @@ module.exports = {
     mux_signing_private_key: ""
   },
   mux_client: null,
-  isValidConfig: function(config) {
+  isValidMuxConfig: function(config) {
     return (
       config.mux_access_key_id     !== "" &&
       config.mux_access_key_secret !== ""
@@ -36,7 +36,11 @@ module.exports = {
     if (!config) {
       return this.DEFAULT_CONFIG
     }
-    return config
+    const fullconfig = {
+      ...this.DEFAULT_CONFIG,
+      ...config
+    }
+    return fullconfig
   },
   setConfig: async function(newConfigInput) {
     const config = await this.getConfig()
@@ -47,7 +51,7 @@ module.exports = {
     }
     const newConfig = {...config, ...newConfigInput}
     const pluginStore = this.getStore()
-    pluginStore.set({ key: "config", value: newConfig})
+    pluginStore.set({ key: "config", value: newConfig })
     this.setMuxClient(newConfig)
   },
   getMuxClient: async function() {
@@ -58,7 +62,7 @@ module.exports = {
     return this.mux_client
   },
   setMuxClient: function(config) {
-    if (this.isValidConfig(config)) {
+    if (this.isValidMuxConfig(config)) {
       this.mux_client = new Mux(config.mux_access_key_id, config.mux_access_key_secret)
     }
   }

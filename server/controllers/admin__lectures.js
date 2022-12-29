@@ -1,63 +1,73 @@
 'use strict';
 
 const fs = require('fs');
-const request = require('request-promise-native');
+const request = require('request');
 const uuid = require('uuid');
+const axios = require('axios')
 
 module.exports = {
   async find(ctx) {
-    const lectures = await strapi.entityService
+    let lectures = await strapi.entityService
     .findMany("plugin::masterclass.mc-lecture",
       {
         filters: {},
         populate: {
-          course: {
-            select: ["id", "title"]
-          },
           video: {
             select: ["video_id", "filename", "duration", "url"]
           }
         }
       }
     )
+    lectures = await Promise.all(lectures.map(async lecture => {
+      // Get the modules where this lecture is in.
+      const modules = await strapi.db.query("plugin::masterclass.mc-module").findMany({
+        where: {
+          lectures: [lecture.id]
+        },
+        populate: {
+          course: {
+            select: ["title", "id"]
+          }
+        }
+      })
+      const courses = modules.map(m => m.course)
+
+      const uniqueCourses = courses.reduce((dict, course) => {
+        dict[`${course.title}-${course.id}`] = course
+        return dict
+      }, {})
+
+      lecture.courses = []
+
+      for (const key in uniqueCourses) {
+        lecture.courses.push(uniqueCourses[key])
+      }
+
+      return lecture
+    }))
     ctx.body = { lectures }
   },
   async create(ctx) {
     const { files, body } = ctx.request
     if (!files || !files.video) {
-      return ctx.badRequest("There is no video")
+      return ctx.badRequest("There should be a video")
     }
     const data = JSON.parse(body.data)
     if (!data || !data.title) {
       return ctx.badRequest("Title must be specified")
     }
 
-    // Get mux client
-    const muxClient = await strapi.service('plugin::masterclass.upload').getMuxClient()
-    const config = await strapi.service('plugin::masterclass.upload').getConfig()
-    if (!muxClient) {
-      return ctx.badRequest("Config is not valid: " + JSON.stringify(config))
-    }
-
-    const { video } = files
     const { title } = data
-    const filename = video.name
+    const filename = files.video.name
 
-    const tempID = uuid.v1();
-    let upload
+    let tempID
+
     try {
-      const { Video } = muxClient
-      // upload.url is where the video will be put.
-      upload = await Video.Uploads.create({
-        new_asset_settings: {
-          passthrough: tempID,
-          playback_policy: 'signed'
-        }
-      })
+      tempID = await strapi.service('plugin::masterclass.lectures').uploadVideo(files.video)
     } catch(err) {
-      console.log(err)
-      return ctx.internalServerError("Error on Video.Uploads.create")
+      return ctx[err.status](err.msg, err.data)
     }
+
     // Save video to database
     const newVideoData = {
       temp_id: tempID,
@@ -76,15 +86,6 @@ module.exports = {
       { data: newLectureData }
     )
 
-    try {
-      // Uplaod video to bucket
-      await fs.createReadStream(video.path).pipe(request.put(upload.url))
-    } catch(err) {
-      console.log(err)
-      return ctx.internalServerError("Error on request.put")
-    }
-    // Upload finished
-
     return {
       newLecture: {
         title,
@@ -93,21 +94,137 @@ module.exports = {
       }
     }
   },
-  async upload(ctx) {
-    console.log("files:")
-    console.log(JSON.stringify(ctx.request.files))
-    /*
-      {
-        "size": 28924,
-        "path": "C:\\Windows\\TEMP\\upload_cf5ca259a73f4a63c766a056f37344a5",
-        "name": "VID-20190701-WA0031.mp4",
-        "type": "video/mp4",
-        "mtime": "2022-01-16T23:07:43.820Z"
+  async getVideoList(ctx) {
+    // Get Mux api key and secret
+    const config = await strapi.service('plugin::masterclass.upload').getConfig()
+    const {
+      mux_access_key_id,
+      mux_access_key_secret
+    } = config
+
+    if (!mux_access_key_id || !mux_access_key_secret) {
+      return ctx.badRequest("Config is not valid", config)
+    }
+
+    let result
+    try {
+      const url = "https://api.mux.com/video/v1/assets"
+      const user = `${mux_access_key_id}:${mux_access_key_secret}`
+      result = await axios.get(url, {
+        headers: {
+          Authorization: `Basic ${Buffer.from(user).toString("base64")}`
+        }
+      })
+    } catch(err) {
+      console.log(err)
+      return ctx.internalServerError("Error while fetching video list")
+    }
+    const { data: { data } } = result
+    const lectures = await Promise.all(data.map(async v => {
+      // Check first if the video ID is unique
+      const id = v.playback_ids[0].id
+      const video = await strapi.db.query("plugin::masterclass.mc-video").findOne({
+        where: {
+          video_id: id
+        }
+      })
+      if (video) {
+        // Don't store video as it already exists
+        return null
       }
-    */
-    console.log("body:")
-    const data = JSON.parse(ctx.request.body.data)
-    console.log(data)
-    return {ok: true}
+      return await strapi.service('plugin::masterclass.lectures').storeLecture(v)
+    }))
+    ctx.body = { lectures: lectures.filter(l => l != null) }
+  },
+  async update(ctx) {
+    const { id } = ctx.params
+    const { files, body } = ctx.request
+
+    let tempID
+
+    if (files && files.video) {
+      try {
+        tempID = await strapi.service('plugin::masterclass.lectures').uploadVideo(files.video)
+      } catch(err) {
+        return ctx[err.status](err.msg, err.data)
+      }
+    }
+    const data = JSON.parse(body.data)
+    const {
+      title,
+      filename,
+      playbackID
+    } = data
+
+    const newLectureData = {
+      title
+    }
+
+    if (playbackID) {
+      // we're updating the video linked to this lecture
+      const video = await strapi.db.query("plugin::masterclass.mc-video").findOne({
+        where: {
+          video_id: playbackID
+        }
+      })
+      if (!video) {
+        return ctx.badRequest("A video with the given playback ID does not exist", {playbackID})
+      }
+      newLectureData.video = video.id
+
+      // Update the video's information
+      await strapi.db.query("plugin::masterclass.mc-video").update({
+        where: {
+          video_id: playbackID
+        },
+        data: {
+          filename,
+          temp_id: tempID
+        }
+      })
+    } else {
+      // To create a new video, at least it must have a tempID or filename
+      if (tempID || filename) {
+        // create new video an link it to this lecture.
+        const newVideoData = {
+          temp_id: tempID,
+          filename,
+          ready: false
+        }
+        const newVideo = await strapi.entityService.create("plugin::masterclass.mc-video",
+          { data: newVideoData }
+        )
+        newLectureData.video = newVideo.id
+      } else {
+        newLectureData.video = null
+      }
+    }
+
+    // finally, update the lecture
+    const lecture = await strapi.entityService.update("plugin::masterclass.mc-lecture", id, {
+      data: newLectureData,
+      fields: ["id", "title"],
+      populate: {
+        video: {
+          fields: ["video_id", "filename", "duration"]
+        }
+      }
+    })
+
+    ctx.body = { lecture }
+  },
+  async listLectures(ctx) {
+    const lectures = await strapi.entityService.findMany("plugin::masterclass.mc-lecture", {
+      filters: {},
+      fields: ["title"],
+      populate: {
+        video: {
+          fields: ["duration"]
+        }
+      }
+    })
+    ctx.body = {
+      lectures
+    }
   }
 }

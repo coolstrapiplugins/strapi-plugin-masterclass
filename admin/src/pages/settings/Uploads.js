@@ -14,7 +14,7 @@ import { Button } from '@strapi/design-system/Button';
 import { Tooltip } from '@strapi/design-system/Tooltip';
 import { Stack } from '@strapi/design-system/Stack';
 import { Textarea } from '@strapi/design-system/Textarea';
-import axios from "../../utils/axiosInstance"
+import axios from "../../utils/axiosInstance";
 
 const SettingsPage = () => {
   const [config, setConfig] = useState({
@@ -28,7 +28,7 @@ const SettingsPage = () => {
   })
   const [sending, setSending] = useState(false)
   const [status, setStatus] = useState(null)
-  const url = `masterclass/config`
+  const url = `/masterclass/config`
   useEffect(() => {
     const fetchConfig = async () => {
       try {
@@ -89,12 +89,14 @@ const SettingsPage = () => {
         config.current.mux_signing_private_key !== config.initial.mux_signing_private_key
     }
     return (
-      mux_access_key_id || mux_access_key_secret || mux_signing_key_id || mux_signing_private_key
+      mux_access_key_id ||
+      mux_access_key_secret ||
+      mux_signing_key_id ||
+      mux_signing_private_key
     )
   }
   const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log("submitting", {config})
     if (
       !( // at least one of the fields should not be null
         config.current.mux_access_key_id !== null ||
@@ -161,7 +163,7 @@ const SettingsPage = () => {
               <Typography fontWeight="bold">
                 {
                   !config.initial ? "loading..." :
-                  config.initial.mux_access_key_id || "unset"
+                  config.initial.mux_access_key_id || "not set"
                 }
               </Typography>
             </Typography>
@@ -171,7 +173,7 @@ const SettingsPage = () => {
                 {
                   !config.initial ? "loading..." :
                   config.initial.mux_access_key_secret ?
-                  config.initial.mux_access_key_secret.substr(0,45)+"..." : "unset"
+                  config.initial.mux_access_key_secret.substr(0,45)+"..." : "not set"
                 }
               </Typography>
             </Typography>
@@ -180,7 +182,7 @@ const SettingsPage = () => {
               <Typography fontWeight="bold">
                 {
                   !config.initial ? "loading..." :
-                  config.initial.mux_signing_key_id || "unset"
+                  config.initial.mux_signing_key_id || "not set"
                 }
               </Typography>
             </Typography>
@@ -190,10 +192,11 @@ const SettingsPage = () => {
                 {
                   !config.initial ? "loading..." :
                   config.initial.mux_signing_private_key ?
-                  config.initial.mux_signing_private_key.substr(0,45)+"..." : "unset"
+                  config.initial.mux_signing_private_key.substr(0,45)+"..." : "not set"
                 }
               </Typography>
             </Typography>
+
           </Stack>
         </Stack>
         <Box paddingTop={4} paddingBottom={2}>
@@ -211,7 +214,7 @@ const SettingsPage = () => {
                 required={true}
               />
               <TextInput
-                label="Mux Access key ((((secret))))"
+                label="Mux Access key secret"
                 name="mux_access_key_secret"
                 onChange={e => handleChange("mux_access_key_secret", e.target.value)}
                 value={

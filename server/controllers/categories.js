@@ -1,5 +1,32 @@
 'use strict';
 
+const courseQuery = {
+  fields: [
+    "id",
+    "duration",
+    "title",
+    "description",
+    "long_description",
+    "price",
+    "slug"
+  ],
+  populate: {
+    thumbnail: {
+      fields: ["name", "url"]
+    },
+    modules: {
+      populate: {
+        lectures: {
+          fields: []
+        }
+      }
+    },
+    category: {
+      fields: ["slug", "title", "id"]
+    }
+  }
+}
+
 module.exports = {
   /*
   * index returns the tree of every category along with their description, featured courses
@@ -7,6 +34,7 @@ module.exports = {
   * It is meant for populating information on some page that lists all the categories,
   * like the homepage.
   */
+  courseQuery,
   async index(ctx) {
     const categories = await strapi.entityService.findMany("plugin::masterclass.mc-category", {
       filter: {},
@@ -25,51 +53,8 @@ module.exports = {
         thumbnail: {
           fields: ["name", "url"]
         },
-        featured_courses: {
-          fields: [
-            "id",
-            "duration",
-            "title",
-            "description",
-            "long_description",
-            "price",
-            "slug"
-          ],
-          populate: {
-            thumbnail: {
-              fields: ["name", "url"]
-            },
-            lectures: {
-              fields: []
-            },
-            category: {
-              fields: ["slug", "title", "id"]
-            }
-          }
-        },
-        courses: {
-          limit: 5,
-          fields: [
-            "id",
-            "duration",
-            "title",
-            "description",
-            "long_description",
-            "price",
-            "slug"
-          ],
-          populate: {
-            thumbnail: {
-              fields: ["name", "url"]
-            },
-            lectures: {
-              fields: []
-            },
-            category: {
-              fields: ["slug", "title", "id"]
-            }
-          }
-        }
+        courses: { ...courseQuery, limit: 5 },
+        featured_courses: courseQuery
       }
     })
     const rootCategories = categories.filter(c => !c.parent_category)
@@ -94,6 +79,7 @@ module.exports = {
               }
             }
           })
+          // subcategory courses
           const sc_courses = await strapi.db.query("plugin::masterclass.mc-course").count({
             where: {
               category: { id: c.id }
@@ -104,7 +90,12 @@ module.exports = {
         })
       }
       category.courses_count = courses_count
+      category.courses = category.courses.map(c => {
+        c.kind = "course"
+        return c
+      })
       category.featured_courses = await Promise.all(category.featured_courses.map(async c => {
+        c.kind = "course"
         c.category.slug = await strapi.service("plugin::masterclass.courses").buildAbsoluteSlug(c)
         return c
       }))
@@ -196,6 +187,32 @@ module.exports = {
     }
   },
   async summary(ctx) {
+    const courseQuery = {
+      select: [
+        "id",
+        "duration",
+        "title",
+        "description",
+        "long_description",
+        "price",
+        "slug"
+      ],
+      populate: {
+        thumbnail: {
+          select: ["name", "url"]
+        },
+        modules: {
+          populate: {
+            lectures: {
+              select: ["id"]
+            }
+          }
+        },
+        category: {
+          select: ["slug", "title", "id"]
+        }
+      }
+    }
     const { slug } = ctx.params
     const category = await strapi.db.query("plugin::masterclass.mc-category").findOne({
       where: {
@@ -213,60 +230,20 @@ module.exports = {
         thumbnail: {
           select: ["name", "url"]
         },
-        featured_courses: {
-          select: [
-            "id",
-            "duration",
-            "title",
-            "description",
-            "long_description",
-            "price",
-            "slug"
-          ],
-          populate: {
-            thumbnail: {
-              select: ["name", "url"]
-            },
-            lectures: {
-              select: ["id"]
-            },
-            category: {
-              select: ["slug", "title", "id"]
-            }
-          }
-        },
-        courses: {
-          select: [
-            "id",
-            "duration",
-            "title",
-            "description",
-            "long_description",
-            "price",
-            "slug"
-          ],
-          populate: {
-            thumbnail: {
-              select: ["name", "url"]
-            },
-            lectures: {
-              select: ["id"]
-            },
-            category: {
-              select: ["slug", "title", "id"]
-            }
-          }
-        }
+        featured_courses: courseQuery,
+        courses: courseQuery
       }
     })
     category.courses = category.courses.filter(c => {
       return !category.featured_courses.some(f_c => f_c.id === c.id)
     })
     category.courses = await Promise.all(category.courses.map(async c => {
+      c.kind = "course"
       c.category.slug = await strapi.service('plugin::masterclass.courses').buildAbsoluteSlug(c)
       return c
     }))
     category.featured_courses = await Promise.all(category.featured_courses.map(async c => {
+      c.kind = "course"
       c.category.slug = await strapi.service('plugin::masterclass.courses').buildAbsoluteSlug(c)
       return c
     }))

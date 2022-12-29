@@ -52,7 +52,7 @@
       "type": "relation",
       "relation": "manyToMany",
       "target": "plugin::masterclass.mc-course",
-      "inversedBy": "featured_in"
+      "mappedBy": "featured_in"
     }
   }
 }

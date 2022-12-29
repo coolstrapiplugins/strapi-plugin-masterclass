@@ -8,14 +8,24 @@ import {
   ModalFooter,
   ModalBody
 } from '@strapi/design-system/ModalLayout';
+import { Loader } from '@strapi/design-system/Loader';
 import { Stack } from '@strapi/design-system/Stack';
+import { Status } from '@strapi/design-system/Status';
+import { Select, Option } from '@strapi/design-system/Select';
 import { Divider } from '@strapi/design-system/Divider';
-import { Textarea } from '@strapi/design-system/Textarea';
 import { Button } from '@strapi/design-system/Button';
 import { Typography, TextButton } from '@strapi/design-system/Typography';
 import { Box } from "@strapi/design-system/Box"
+import { TextInput } from "@strapi/design-system/TextInput"
+import { Textarea } from "@strapi/design-system/Textarea"
+import { NumberInput } from "@strapi/design-system/NumberInput"
+
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+
+import EditCourseModal from "./EditCourseModal"
 
 import axios from "../../../utils/axiosInstance"
+import formatDuration from "../../../utils/duration"
 
 const ROW_COUNT = 6;
 const COL_COUNT = 10;
@@ -35,9 +45,14 @@ const CoursesContainer = ({data}) => {
     <Box>
       {
         (!data.courses || !data.courses.length) ?
-          <Typography variant="beta">There are no courses yet</Typography>
+          <Stack spacing={4}>
+            <Typography variant="beta">There are no courses yet</Typography>
+            <Status variant="secondary">
+              <Typography>Start creating a course from the Content Manager. Or press the button above</Typography>
+            </Status>
+          </Stack>
         : courses && (
-          <Stack size={2}>
+          <Stack spacing={2}>
             <Typography variant="beta">
               {data.courses.length} {data.courses.length>1 ? "courses":"course"} found
             </Typography>
@@ -55,6 +70,12 @@ const CoursesContainer = ({data}) => {
                   </Th>
                   <Th>
                     <Typography fontWeight="bold">Students</Typography>
+                  </Th>
+                  <Th>
+                    <Typography fontWeight="bold">Duration</Typography>
+                  </Th>
+                  <Th>
+                    <Typography fontWeight="bold">Category</Typography>
                   </Th>
                 </Tr>
               </Thead>
@@ -79,11 +100,22 @@ const TableRow = styled(Tr)`
 `
 const CourseRow = ({ data }) => {
   const [modalOpen, setModalOpen] = useState(false)
-  let titleSummary = data.title
-  if (data.title && data.title.length > 50) {
-    titleSummary = data.title.slice(0, 50)
+  const [courseData, setCourseData] = useState(data)
+  let titleSummary = courseData.title
+  if (titleSummary && titleSummary.length > 25) {
+    titleSummary = courseData.title.slice(0, 25)
     titleSummary += "..."
   }
+
+  let categoryTitleSummary = "null"
+  if (courseData.category) {
+    categoryTitleSummary = courseData.category.title
+    if (categoryTitleSummary.length > 15) {
+      categoryTitleSummary = categoryTitleSummary.slice(0, 15)
+      categoryTitleSummary += "..."
+    }
+  }
+
   const closeModal = e => {
     if (e && e.stopPropagation) {
       e.stopPropagation()
@@ -93,222 +125,24 @@ const CourseRow = ({ data }) => {
   return (
     <TableRow onClick={() => setModalOpen(true)}>
       <Td>
-        {data.id}
+        {courseData.id}
         {
           modalOpen &&
-          <CourseModal
-            data={data}
+          <EditCourseModal
+            httpMethod="put"
+            data={courseData}
             close={closeModal}
+            update={setCourseData}
+            submitUrl={`/masterclass/courses/${courseData.id}`}
+            modalHeaderText={`Editing course ${courseData.title}`}
           />
         }
       </Td>
-      <Td>{titleSummary}</Td>
-      <Td>{data.lectures.length}</Td>
-      <Td>{data.students.length}</Td>
+      <Td>{titleSummary || `(${courseData.id}) untitled course`}</Td>
+      <Td>{courseData.modules.reduce((total, m) => total + m.lectures.length, 0)}</Td>
+      <Td>{courseData.students.length}</Td>
+      <Td>{formatDuration(courseData.duration || 0)}</Td>
+      <Td>{categoryTitleSummary}</Td>
     </TableRow>
-  )
-}
-
-const CourseModal = ({data, close}) => {
-  const [lecturesModalOpen, setLecturesModalOpen] = useState(false)
-  return (
-    <ModalLayout labelledBy="title" onClose={close}>
-      <ModalHeader>
-        <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
-          {data.title}
-        </Typography>
-      </ModalHeader>
-      <ModalBody>
-        <Stack size={2}>
-          <Box>
-            <Button onClick={() => setLecturesModalOpen(true)}>Add lectures</Button>
-          </Box>
-          <Typography variant="beta">
-            {data.lectures.length} lectures
-          </Typography>
-          {
-            (data.lectures.length > 0) &&
-            <Table colCount={COL_COUNT} rowCount={ROW_COUNT}>
-              <Thead>
-                <Tr>
-                  <Th>
-                    <Typography fontWeight="bold">ID</Typography>
-                  </Th>
-                  <Th>
-                    <Typography fontWeight="bold">Title</Typography>
-                  </Th>
-                  <Th>
-                    <Typography fontWeight="bold">Duration (s)</Typography>
-                  </Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {
-                  data.lectures.map(l => {
-                    let titleSummary = l.title
-                    if (l.title && l.title.length > 50) {
-                      titleSummary = l.title.slice(0, 50)
-                      titleSummary += "..."
-                    }
-                    return (
-                      <Tr key={l.id + l.title}>
-                        <Td>{l.id}</Td>
-                        <Td>{titleSummary}</Td>
-                        <Td>{l.video.duration}</Td>
-                      </Tr>
-                    )
-                  })
-                }
-              </Tbody>
-            </Table>
-          }
-          <Typography variant="beta">
-            {data.students.length} students
-          </Typography>
-        </Stack>
-        {
-          lecturesModalOpen && (
-            <AddLecturesModal
-              close={() => setLecturesModalOpen(false)}
-              courseLectures={data.lectures}
-              courseID={data.id}
-            />
-          )
-        }
-      </ModalBody>
-      <ModalFooter
-        startActions={<></>}
-        endActions={<Button onClick={close}>Finish</Button>}
-      />
-    </ModalLayout>
-  )
-}
-
-const AddLecturesModal = ({courseID, courseLectures, close}) => {
-  const [lecturesChecked, setLecturesChecked] = useState([])
-  const [lectures, setLectures] = useState(null)
-  const [sending, setSending] = useState(false)
-  useEffect(() => {
-    const fetchLectures = async () => {
-      const url = "/masterclass/lectures"
-      try {
-        const { data } = await axios.get(url)
-        const filteredLectures = data.lectures.filter(l => {
-          return !courseLectures.some(({id}) => id === l.id)
-        })
-        setLectures(filteredLectures)
-      } catch(err) {
-        console.log(err)
-        setLectures([])
-      }
-    }
-    fetchLectures()
-  }, [])
-  const handleSubmit = async (e) => {
-    setSending(true)
-    e.preventDefault()
-    const url = `/masterclass/course/${courseID}/link-lectures`
-    try {
-        await axios.put(url, {lectures: lecturesChecked})
-        close()
-      } catch(err) {
-        console.log(err)
-        setSending(false)
-      }
-  }
-  const toggleCheckAll = () => {
-    const checkedAll = lectures ? (lectures.length === lecturesChecked.length) : false
-    if (checkedAll) {
-      setLecturesChecked([])
-    } else {
-      setLecturesChecked(lectures.map(l => l.id))
-    }
-  }
-  return (
-    <ModalLayout labelledBy="title" onClose={close}>
-      <ModalHeader>
-        <Typography fontWeight="bold" textColor="neutral800" as="h2" id="title">
-          Add lecture to course {courseID}
-        </Typography>
-      </ModalHeader>
-      <ModalBody>
-        {
-          lectures ?
-            lectures.length ?
-              <form onSubmit={handleSubmit}>
-                <Table colCount={COL_COUNT} rowCount={ROW_COUNT}>
-                  <Thead>
-                    <Tr>
-                      <Th>
-                        <Checkbox
-                          checked={lectures ? (lectures.length === lecturesChecked.length):false}
-                          onChange={toggleCheckAll}
-                        >ID</Checkbox>
-                      </Th>
-                      <Th>
-                        <Typography fontWeight="bold">Title</Typography>
-                      </Th>
-                      <Th>
-                        <Typography fontWeight="bold">Duration (s)</Typography>
-                      </Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {
-                      lectures.map(l => {                      
-                        let titleSummary = l.title
-                        if (l.title && l.title.length > 50) {
-                          titleSummary = l.title.slice(0, 50)
-                          titleSummary += "..."
-                        }
-                        const handleChange = (e) => {
-                          if (lecturesChecked.includes(l.id)) {
-                            // remove
-                            setLecturesChecked(lecturesChecked.filter(id => id !== l.id))
-                          } else {
-                            // add
-                            setLecturesChecked(lecturesChecked.concat(l.id))
-                          }
-                        }
-                        return (
-                          <Tr key={l.id + l.title}>
-                            <Td>
-                              <Checkbox
-                                checked={lecturesChecked.includes(l.id)}
-                                onChange={handleChange}
-                              >
-                                {l.id.toString()}
-                              </Checkbox>
-                            </Td>
-                            <Td>{titleSummary}</Td>
-                            <Td>{l.video.duration}</Td>
-                          </Tr>
-                        )
-                      })
-                    }
-                  </Tbody>
-                </Table>
-                <Button
-                  type="submit"
-                  loading={sending ? true : undefined}
-                >Submit</Button>
-              </form>
-            : (
-              <Typography fontWeight="bold">
-                There are no lectures to add to this course
-              </Typography>
-            )
-          : (
-            <Typography fontWeight="bold">
-              Loading lectures. Please wait...
-            </Typography>
-          )
-        }
-      </ModalBody>
-      <ModalFooter
-        startActions={<></>}
-        endActions={<Button onClick={close}>Finish</Button>}
-      />
-    </ModalLayout>
   )
 }

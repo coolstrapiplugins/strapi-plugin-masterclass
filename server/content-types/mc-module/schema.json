@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "mc_module",
+  "info": {
+    "singularName": "mc-module",
+    "pluralName": "mc-modules",
+    "displayName": "Module",
+    "description": "Course module"
+  },
+  "options": {
+    "draftAndPublish": false,
+    "comment": ""
+  },
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "duration": {
+      "type": "integer"
+    },
+    "lectures_order": {
+      "type": "json"
+    },
+    "course": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::masterclass.mc-course",
+      "inversedBy": "modules"
+    },
+    "lectures": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "plugin::masterclass.mc-lecture"
+    }
+  }
+}

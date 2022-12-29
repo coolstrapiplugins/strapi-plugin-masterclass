@@ -14,7 +14,7 @@ export default {
       icon: PluginIcon,
       intlLabel: {
         id: `${pluginId}.plugin.name`,
-        defaultMessage: name,
+        defaultMessage: "Masterclass",
       },
       Component: async () => {
         const component = await import(/* webpackChunkName: "[request]" */ './pages/App');
@@ -48,36 +48,6 @@ export default {
           Component: async () => {
             const component = await import(
               /* webpackChunkName: "users-roles-settings-page" */ './pages/settings/Uploads'
-            );
-            return component;
-          },
-          permissions: []
-        },
-        {
-          intlLabel: {
-            id: getTrad('Settings.stripe'),
-            defaultMessage: "Stripe"
-          },
-          id: "stripe",
-          to: `/settings/${pluginId}/stripe`,
-          Component: async () => {
-            const component = await import(
-              /* webpackChunkName: "users-roles-settings-page" */ './pages/settings/Stripe'
-            );
-            return component;
-          },
-          permissions: []
-        },
-        {
-          intlLabel: {
-            id: getTrad('Settings.paypal'),
-            defaultMessage: "Paypal"
-          },
-          id: "paypal",
-          to: `/settings/${pluginId}/paypal`,
-          Component: async () => {
-            const component = await import(
-              /* webpackChunkName: "users-roles-settings-page" */ './pages/settings/Paypal'
             );
             return component;
           },

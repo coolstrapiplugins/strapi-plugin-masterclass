@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import styled from "styled-components"
 import { Table, Thead, Tbody, Tr, Td, Th } from '@strapi/design-system/Table';
 import {
@@ -8,13 +8,17 @@ import {
   ModalBody
 } from '@strapi/design-system/ModalLayout';
 import { Stack } from '@strapi/design-system/Stack';
+import { Status } from '@strapi/design-system/Status';
 import { Divider } from '@strapi/design-system/Divider';
 import { Textarea } from '@strapi/design-system/Textarea';
 import { Button } from '@strapi/design-system/Button';
 import { Typography, TextButton } from '@strapi/design-system/Typography';
 import { Box } from "@strapi/design-system/Box"
+import { TextInput } from '@strapi/design-system/TextInput';
+import { Select, Option } from '@strapi/design-system/Select';
 
 import axios from "../../../utils/axiosInstance"
+import formatDuration from "../../../utils/duration"
 
 const ROW_COUNT = 6;
 const COL_COUNT = 10;
@@ -36,7 +40,7 @@ const LecturesContainer = ({data}) => {
         (!data.lectures || !data.lectures.length) ?
           <Typography variant="beta">There are no lectures yet</Typography>
         : lectures && (
-          <Stack size={2}>
+          <Stack spacing={2}>
             <Typography variant="beta">
             {data.lectures.length} {data.lectures.length>1? "lectures":"lecture"} found
             </Typography>
@@ -53,7 +57,7 @@ const LecturesContainer = ({data}) => {
                     <Typography fontWeight="bold">Course</Typography>
                   </Th>
                   <Th>
-                    <Typography fontWeight="bold">Duration (s)</Typography>
+                    <Typography fontWeight="bold">Duration</Typography>
                   </Th>
                 </Tr>
               </Thead>
@@ -77,18 +81,22 @@ const TableRow = styled(Tr)`
   }
 `
 const LectureRow = ({ data }) => {
+  const [lectureData, setLectureData] = useState(data)
   const [modalOpen, setModalOpen] = useState(false)
-  let titleSummary = data.title
-  if (data.title && data.title.length > 50) {
-    titleSummary = data.title.slice(0, 50)
+  let titleSummary = lectureData.title
+  if (lectureData.title && lectureData.title.length > 50) {
+    titleSummary = lectureData.title.slice(0, 50)
     titleSummary += "..."
   }
-  let courseTitleSummary = "N/A"
-  if (data.course) {
-    courseTitleSummary = data.course.title
-    if (courseTitleSummary > 25) {
-      courseTitleSummary = courseTitleSummary.slice(0, 25)
+  let courseTitleSummary = "null"
+  if (lectureData.courses.length > 0) {
+    courseTitleSummary = lectureData.courses[0].title
+    if (courseTitleSummary.length > 15) {
+      courseTitleSummary = courseTitleSummary.slice(0, 15)
       courseTitleSummary += "..."
+    }
+    if (lectureData.courses.length > 1) {
+      courseTitleSummary += ` and ${lectureData.courses.length-1} more`
     }
   }
   const closeModal = e => {
@@ -97,6 +105,9 @@ const LectureRow = ({ data }) => {
     }
     setModalOpen(prev => !prev)
   }
+  const handleUpdate = (newData) => {
+    setLectureData(newData)
+  }
   return (
     <TableRow onClick={() => setModalOpen(true)}>
       <Td>
@@ -104,19 +115,124 @@ const LectureRow = ({ data }) => {
         {
           modalOpen &&
           <LectureModal
-            data={data}
+            data={lectureData}
+            update={handleUpdate}
             close={closeModal}
           />
         }
       </Td>
       <Td>{titleSummary}</Td>
       <Td>{courseTitleSummary}</Td>
-      <Td>{data.video.duration}</Td>
+      <Td>{formatDuration(lectureData.video.duration || 0)}</Td>
     </TableRow>
   )
 }
 
-const LectureModal = ({data, close}) => {
+const LectureModal = ({data, close, update}) => {
+  const [title, setTitle] = useState(data.title || `(${data.id}) untitled lecture`)
+
+  const [file, setFile] = useState(null)
+  const [filename, setFilename] = useState(data.video ? data.video.filename : "")
+  const [duration, setDuration] = useState(data.video ? data.video.duration : "0")
+  const [playbackID, setPlaybackID] = useState(data.video ? data.video.video_id : "")
+  const [selectedVideo, setSelectedVideo] = useState(data.video)
+
+  const [availableVideos, setAvailableVideos] = useState(data.video ? [data.video] : null)
+  const [loadingVideos, setLoadingVideos] = useState(false)
+  const [loadingCourses, setLoadingCourses] = useState(false)
+  const [loadVideosError, setLoadVideosError] = useState("")
+  const [loadCoursesError, setLoadCoursesError] = useState("")
+
+  const [sending, setSending] = useState(false)
+  const [status, setStatus] = useState(null)
+  const inputFileRef = useRef()
+
+  useEffect(() => {
+    const fetchVideos = async () => {
+      const url = `/masterclass/list-videos`
+      setLoadingVideos(true)
+      setLoadVideosError("")
+      try {
+        const { data: res } = await axios.get(url)
+        let filteredVideoList = res.videos
+        if (data.video) {
+          filteredVideoList = [
+            data.video,
+            ...res.videos.filter(v => v.id !== data.video.id)
+          ]
+        }
+        setAvailableVideos(filteredVideoList)
+      } catch(err) {
+        console.log(err)
+        setLoadVideosError("Could not fetch available videos")
+      } finally {
+        setLoadingVideos(false)
+      }
+    }
+
+    fetchVideos()
+  }, [data])
+
+  const handleChangeVideo = (videoID) => {
+    if (!availableVideos || !availableVideos.length > 0) {
+      return
+    }
+    const video = availableVideos.find(v => v.id === videoID)
+    if (!video) {
+      console.log("Video " + videoID + " not found in availableVideos")
+      return
+    }
+    setFilename(video.filename || `(${video.id}) untitled video`)
+    setDuration(video.duration)
+    setPlaybackID(video.video_id)
+    setSelectedVideo(video)
+    setFile(null)
+    inputFileRef.current.value = ""
+  }
+
+  const handleChangeVideoFile = (e) => {
+    const newAttachment = e.target.files[0]
+    setFilename(newAttachment.name)
+    setDuration("")
+    setPlaybackID("")
+    setFile(newAttachment)
+  }
+
+  const handleClearVideo = () => {
+    setFilename("")
+    setDuration("")
+    setPlaybackID("")
+    setSelectedVideo(null)
+    setFile(null)
+    inputFileRef.current.value = ""
+  }
+
+  const handleSave = async () => {
+    const url = `/masterclass/lectures/${data.id}`
+    const formData = new FormData()
+    if (file) {
+      formData.append("video", file, file.name)
+    }
+    formData.append("data", JSON.stringify(
+      {
+        title,
+        filename,
+        playbackID: selectedVideo ? selectedVideo.video_id : ""
+      }
+    ))
+    try {
+      setSending(true)
+      const { data } = await axios.put(url, formData)
+      update(data.lecture)
+      setStatus({msg: "Lecture updated correctly", variant: "success"})
+    } catch(err) {
+      console.log(err)
+      setStatus({msg: "Could not update lecture", variant: "danger"})
+    } finally {
+      setSending(false)
+    }
+  }
+
   return (
     <ModalLayout labelledBy="title" onClose={close}>
       <ModalHeader>
@@ -125,54 +241,133 @@ const LectureModal = ({data, close}) => {
         </Typography>
       </ModalHeader>
       <ModalBody>
-        <Stack size={2}>
-          <Typography>
-            <Typography fontWeight="bold">
-              Lecture ID: {" "}
+
+        <Stack spacing={4}>
+
+          <Stack spacing={2}>
+
+            <Typography variant="beta">
+              Lecture details:
             </Typography>
-            {data.id}
-          </Typography>
-          <Typography>
-            <Typography fontWeight="bold">
-              Title: {" "}
+
+            <Typography>
+              <Typography fontWeight="bold">
+                Lecture ID: {" "}
+              </Typography>
+              {data.id}
             </Typography>
-            {data.title}
-          </Typography>
-          <Typography>
-            <Typography fontWeight="bold">
-              Course: {" "}
+
+            <TextInput
+              label="Lecture title"
+              name="title"
+              onChange={e => setTitle(e.target.value)}
+              value={title}
+              required={true}
+            />
+
+            <Typography>
+              <Typography fontWeight="bold">
+                Courses: {" "}
+              </Typography>
+              {
+                (data.courses.length > 0) ?
+                  data.courses.map((c, index) => {
+                    let txt = c.title || `(${c.id}) untitled course`
+                    if (index < data.courses.length -1) {
+                      txt += ", "
+                    }
+                    return txt
+                  })
+                : "This lecture is not linked to any course"
+              }
             </Typography>
-            {data.course ? data.course.title : "This lecture is not linked to any course"}
-          </Typography>
-          <Typography>
-            <Typography fontWeight="bold">
-              Filename: {" "}
+
+          </Stack>
+
+
+          <Stack spacing={2}>
+            <Typography variant="beta">
+              Video details:
             </Typography>
-            {data.video.filename}
-          </Typography>
-          <Typography>
-            <Typography fontWeight="bold">
-              Video ID: {" "}
-            </Typography>
-            {data.video.video_id}
-          </Typography>
-          <Typography>
-            <Typography fontWeight="bold">
-              Video duration: {" "}
-            </Typography>
-            {data.video.duration} seconds
-          </Typography>
-          <Typography>
-            <Typography fontWeight="bold">
-              Video URL: {" "}
-            </Typography>
-            {data.video.url}
-          </Typography>
+
+            <Select
+              id="video-selection"
+              label="Select video"
+              placeholder="Choose video"
+              clearLabel="Unlink this video"
+              onClear={handleClearVideo}
+              error={loadVideosError}
+              value={selectedVideo?.id}
+              onChange={handleChangeVideo}
+            >
+              {
+                (availableVideos && availableVideos.length > 0) && (
+                  availableVideos.map((v, idx) => {
+                    return (
+                      <Option value={v.id} key={`${v.video_id}-${idx}`}>
+                        {v.filename || `(${v.id}) untitled video`}
+                      </Option>
+                    )
+                  })
+                )
+              }
+            </Select>
+
+            <TextInput
+              label="Filename"
+              name="filename"
+              onChange={e => setFilename(e.target.value)}
+              value={filename}
+              required={true}
+            />
+
+            <TextInput
+              label="Video playback ID"
+              name="playback_id"
+              value={playbackID}
+              disabled
+            />
+
+            <TextInput
+              label="Duration"
+              name="duration"
+              value={formatDuration(duration)}
+              disabled
+            />
+
+            <Stack spacing={0}>
+              <Typography>
+                {selectedVideo ? "Replace file" : "Attach video"}
+              </Typography>
+              <input
+                type="file"
+                ref={inputFileRef}
+                onChange={handleChangeVideoFile}
+                accept="video/avi, video/mpeg, video/webm, video/mp4, video/ogg"
+              />
+            </Stack>
+
+          </Stack>
+          <Box>
+            <Button onClick={handleSave} loading={sending}>Save</Button>
+          </Box>
         </Stack>
       </ModalBody>
       <ModalFooter
-        startActions={<></>}
-        endActions={<Button onClick={close}>Finish</Button>}
+        startActions={
+          <>
+            {
+              status && (
+                <Status variant={status.variant}>
+                  <Typography>
+                    {status.msg}
+                  </Typography>
+                </Status>
+              )
+            }
+          </>
+        }
+        endActions={<Button variant="secondary" onClick={close}>Close</Button>}
       />
     </ModalLayout>
   )

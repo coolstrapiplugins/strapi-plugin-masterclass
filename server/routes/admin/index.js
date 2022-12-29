@@ -13,8 +13,16 @@ module.exports = {
     },
     {
       method: 'POST',
-      path: '/upload',
-      handler: 'admin__lectures.upload',
+      path: '/courses',
+      handler: 'admin__courses.create',
+      config: {
+        policies: [],
+      }
+    },
+    {
+      method: 'PUT',
+      path: '/courses/:id',
+      handler: 'admin__courses.update',
       config: {
         policies: [],
       }
@@ -30,7 +38,7 @@ module.exports = {
     {
       method: 'POST',
       path: '/get-video-list',
-      handler: 'admin__upload.getVideoList',
+      handler: 'admin__lectures.getVideoList',
       config: {
         policies: [],
       }
@@ -52,6 +60,46 @@ module.exports = {
       }
     },
     {
+      method: 'PUT',
+      path: '/lectures/:id',
+      handler: 'admin__lectures.update',
+      config: {
+        policies: [],
+      }
+    },
+    {
+      method: 'GET',
+      path: '/list-categories',
+      handler: 'admin__categories.listCategories',
+      config: {
+        policies: [],
+      }
+    },
+    {
+      method: 'GET',
+      path: '/list-videos',
+      handler: 'admin__videos.find',
+      config: {
+        policies: [],
+      }
+    },
+    {
+      method: 'GET',
+      path: '/list-courses',
+      handler: 'admin__courses.listCourses',
+      config: {
+        policies: [],
+      }
+    },
+    {
+      method: 'GET',
+      path: '/list-lectures',
+      handler: 'admin__lectures.listLectures',
+      config: {
+        policies: [],
+      }
+    },
+    {
       method: 'GET',
       path: '/config',
       handler: 'admin__upload.getConfig',
@@ -63,38 +111,6 @@ module.exports = {
       method: 'POST',
       path: '/config',
       handler: 'admin__upload.setConfig',
-      config: {
-        policies: [],
-      }
-    },
-    {
-      method: 'GET',
-      path: '/stripe-pk',
-      handler: 'admin__stripe.getStripePk',
-      config: {
-        policies: [],
-      }
-    },
-    {
-      method: 'POST',
-      path: '/stripe-pk',
-      handler: 'admin__stripe.setStripePk',
-      config: {
-        policies: [],
-      }
-    },
-    {
-      method: 'GET',
-      path: '/paypal',
-      handler: 'admin__paypal.getConfig',
-      config: {
-        policies: [],
-      }
-    },
-    {
-      method: 'POST',
-      path: '/paypal',
-      handler: 'admin__paypal.setConfig',
       config: {
         policies: [],
       }

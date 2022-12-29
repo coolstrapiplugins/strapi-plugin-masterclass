@@ -7,24 +7,40 @@ module.exports = {
         filters: {},
         sort: { createdAt: "DESC" },
         populate: {
-          lectures: {
-            select: ["id", "title"],
-            populate: {
-              video: {
-                select: ["video_id", "filename", "url", "duration"]
-              }
-            }
-          },
           students: {
             populate: {
               user: {
                 select: ["id", "username", "email"]
               }
             }
+          },
+          category: {
+            select: ["id", "title", "slug"]
+          },
+          featured_in: {
+            select: ["id", "title", "slug"]
+          },
+          modules: {
+            select: ["title"],
+            populate: {
+              lectures: {
+                select: ["id", "title"],
+                populate: {
+                  video: {
+                    select: ["video_id", "filename", "url", "duration"]
+                  }
+                }
+              }
+            }
           }
         }
       }
     )
+    courses.forEach(course => {
+      const modulesOrdered = strapi.service("plugin::masterclass.courses").orderModules(course)
+
+      course.modules = modulesOrdered
+    })
     ctx.body = { courses }
   },
   async linkLectures(ctx) {
@@ -65,5 +81,35 @@ module.exports = {
       }
     })
     return {ok: true}
+  },
+  async listCourses(ctx) {
+    const courses = await strapi.entityService.findMany("plugin::masterclass.mc-course", {
+      filters: {},
+      fields: ["title", "slug"]
+    })
+    ctx.body = {
+      courses
+    }
+  },
+  async create(ctx) {
+
+    const course = await strapi.service("plugin::masterclass.courses").storeCourse({
+      body: ctx.request.body,
+      action: "create",
+      id: null
+    })
+
+    ctx.body = { course }
+  },
+  async update(ctx) {
+    const { id } = ctx.params
+
+    const course = await strapi.service("plugin::masterclass.courses").storeCourse({
+      body: ctx.request.body,
+      action: "update",
+      id
+    })
+
+    ctx.body = { course }
   }
 }

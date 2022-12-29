@@ -55,9 +55,9 @@ const CreateLectureModal = (props) => {
         </Typography>
       </ModalHeader>
       <ModalBody>
-        <Stack size={4}>
+        <Stack spacing={4}>
           <form onSubmit={handleSubmit}>
-            <Stack size={2}>
+            <Stack spacing={2}>
               <TextInput
                 label="Lecture title"
                 name="title"

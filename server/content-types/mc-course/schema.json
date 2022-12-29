@@ -57,11 +57,14 @@
       "target": "plugin::masterclass.mc-category",
       "inversedBy": "featured_courses"
     },
-    "lectures": {
+    "modules": {
       "type": "relation",
-      "relation": "manyToMany",
-      "target": "plugin::masterclass.mc-lecture",
-      "inversedBy": "courses"
+      "relation": "oneToMany",
+      "target": "plugin::masterclass.mc-module",
+      "mappedBy": "course"
+    },
+    "modules_order": {
+      "type": "json"
     }
   }
 }
