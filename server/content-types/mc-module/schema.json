@@ -13,24 +13,41 @@
   },
   "attributes": {
     "title": {
-      "type": "string"
+      "type": "string",
+      "configurable": false
     },
     "duration": {
-      "type": "integer"
+      "type": "integer",
+      "configurable": false
     },
     "lectures_order": {
-      "type": "json"
+      "type": "json",
+      "pluginOptions": {
+        "lectures-selector": {
+          "enabled": true
+        }
+      },
+      "configurable": false
     },
     "course": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::masterclass.mc-course",
-      "inversedBy": "modules"
+      "inversedBy": "modules",
+      "configurable": false
     },
     "lectures": {
       "type": "relation",
       "relation": "oneToMany",
-      "target": "plugin::masterclass.mc-lecture"
+      "target": "plugin::masterclass.mc-lecture",
+      "configurable": false
+    }
+  },
+  "config": {
+    "attributes": {
+      "duration": {
+        "hidden": true
+      }
     }
   }
 }

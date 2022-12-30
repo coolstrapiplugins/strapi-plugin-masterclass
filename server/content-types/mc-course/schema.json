@@ -13,16 +13,20 @@
   },
   "attributes": {
     "title": {
-      "type": "string"
+      "type": "string",
+      "configurable": false
     },
     "duration": {
-      "type": "integer"
+      "type": "integer",
+      "configurable": false
     },
     "description": {
-      "type": "text"
+      "type": "text",
+      "configurable": false
     },
     "price": {
-      "type": "decimal"
+      "type": "decimal",
+      "configurable": false
     },
     "thumbnail": {
       "type": "media",
@@ -30,41 +34,49 @@
       "required": false,
       "allowedTypes": [
         "images"
-      ]
+      ],
+      "configurable": false
     },
     "slug": {
       "type": "uid",
-      "targetField": "title"
+      "targetField": "title",
+      "configurable": false
     },
     "students": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "plugin::masterclass.mc-student-course",
-      "mappedBy": "course"
+      "mappedBy": "course",
+      "configurable": false
     },
     "long_description": {
-      "type": "richtext"
+      "type": "richtext",
+      "configurable": false
     },
     "category": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::masterclass.mc-category",
-      "inversedBy": "courses"
+      "inversedBy": "courses",
+      "configurable": false
     },
     "featured_in": {
       "type": "relation",
       "relation": "manyToMany",
       "target": "plugin::masterclass.mc-category",
-      "inversedBy": "featured_courses"
+      "inversedBy": "featured_courses",
+      "configurable": false
     },
     "modules": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "plugin::masterclass.mc-module",
-      "mappedBy": "course"
+      "mappedBy": "course",
+      "configurable": false
     },
     "modules_order": {
-      "type": "json"
+      "type": "json",
+      "configurable": false
     }
   }
 }

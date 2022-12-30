@@ -13,10 +13,12 @@
   },
   "attributes": {
     "title": {
-      "type": "string"
+      "type": "string",
+      "configurable": false
     },
     "description": {
-      "type": "text"
+      "type": "text",
+      "configurable": false
     },
     "thumbnail": {
       "type": "media",
@@ -24,35 +26,41 @@
       "required": false,
       "allowedTypes": [
         "images"
-      ]
+      ],
+      "configurable": false
     },
     "slug": {
       "type": "uid",
-      "targetField": "title"
+      "targetField": "title",
+      "configurable": false
     },
     "subcategories": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "plugin::masterclass.mc-category",
-      "mappedBy": "parent_category"
+      "mappedBy": "parent_category",
+      "configurable": false
     },
     "parent_category": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::masterclass.mc-category",
-      "inversedBy": "subcategories"
+      "inversedBy": "subcategories",
+      "configurable": false
     },
     "courses": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "plugin::masterclass.mc-course",
-      "mappedBy": "category"
+      "mappedBy": "category",
+      "configurable": false
     },
     "featured_courses": {
       "type": "relation",
       "relation": "manyToMany",
       "target": "plugin::masterclass.mc-course",
-      "mappedBy": "featured_in"
+      "mappedBy": "featured_in",
+      "configurable": false
     }
   }
 }

@@ -13,13 +13,15 @@
   },
   "attributes": {
     "title": {
-      "type": "string"
+      "type": "string",
+      "configurable": false
     },
     "video": {
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::masterclass.mc-video",
-      "inversedBy": "lectures"
+      "inversedBy": "lectures",
+      "configurable": false
     }
   }
 }
