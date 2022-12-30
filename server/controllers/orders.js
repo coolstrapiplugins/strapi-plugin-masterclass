@@ -102,7 +102,7 @@ module.exports = {
         return ctx[result.status](result.msg)
       }
     } catch(err) {
-      console.log(JSON.stringify(err))
+      console.log(err)
       return ctx.internalServerError("Something went wrong")
     }
 
